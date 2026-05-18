@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database (used by Odoo)
+  db:
+    image: postgres:15
+    container_name: solar_postgres
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo123
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Odoo 17 CRM
+  odoo:
+    image: odoo:17
+    container_name: solar_odoo
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo123
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - odoo_addons:/mnt/extra-addons
+    restart: unless-stopped
+
+  # n8n workflow automation
+  n8n:
+    image: n8nio/n8n
+    container_name: solar_n8n
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: solar123
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  odoo_data:
+  odoo_addons:
+  n8n_data:
