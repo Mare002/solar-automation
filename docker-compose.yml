@@ -14,6 +14,7 @@ services:
     restart: unless-stopped
 
   # Odoo 17 CRM
+  # Master password: 83pw-w33z-w6s5 <------ TO BE DELETED LATER
   odoo:
     image: odoo:17
     container_name: solar_odoo
