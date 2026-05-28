@@ -14,7 +14,6 @@ services:
     restart: unless-stopped
 
   # Odoo 17 CRM
-  # Master password: 83pw-w33z-w6s5 <------ TO BE DELETED LATER
   odoo:
     image: odoo:17
     container_name: solar_odoo
@@ -45,8 +44,19 @@ services:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
 
+  # Python API server (calculator + PDF generator)
+  solar_api:
+    build: .
+    container_name: solar_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - pdf_output:/app/generated_pdfs
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   odoo_data:
   odoo_addons:
   n8n_data:
+  pdf_output:
