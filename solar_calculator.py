@@ -32,6 +32,8 @@ ORIENTATION_COEFFICIENT = {
     "southeast": 0.95,
     "west": 0.85,
     "east": 0.85,
+    "northeast": 0.80,
+    "northwest": 0.80,
     "north": 0.60,
 }
 

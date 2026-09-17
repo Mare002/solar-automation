@@ -1,50 +1,83 @@
-version: '3.8'
+name: solar-automation
+
+# Reads secrets from .env in this same folder. Copy .env.example -> .env first.
+# The `version:` key was removed on purpose - Compose v2 ignores it and warns.
 
 services:
-  # PostgreSQL database (used by Odoo)
+
+  # ---------------------------------------------------------------
+  # PostgreSQL - Odoo's database. Losing this volume = losing the CRM.
+  # ---------------------------------------------------------------
   db:
     image: postgres:15
     container_name: solar_postgres
     environment:
-      POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo123
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
-  # Odoo 17 CRM
+  # ---------------------------------------------------------------
+  # Odoo 17 Community - CRM and sales pipeline
+  # ---------------------------------------------------------------
   odoo:
-    image: odoo:17
+    image: odoo:19
     container_name: solar_odoo
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8069:8069"
     environment:
       HOST: db
-      USER: odoo
-      PASSWORD: odoo123
+      USER: ${POSTGRES_USER}
+      PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - odoo_data:/var/lib/odoo
       - odoo_addons:/mnt/extra-addons
+      - ./backup:/backup          # so `pg_dump` output lands on the host, not in a volume
     restart: unless-stopped
 
-  # n8n workflow automation
+  # ---------------------------------------------------------------
+  # n8n - workflow engine
+  # N8N_ENCRYPTION_KEY is pinned in .env. Without it, n8n generates a
+  # random key on first boot and stores it only inside the volume - if the
+  # volume dies, every saved credential becomes undecryptable.
+  # ---------------------------------------------------------------
   n8n:
-    image: n8nio/n8n
+    image: n8nio/n8n:${N8N_VERSION:-latest}
     container_name: solar_n8n
     ports:
       - "5678:5678"
     environment:
-      N8N_BASIC_AUTH_ACTIVE: "true"
-      N8N_BASIC_AUTH_USER: admin
-      N8N_BASIC_AUTH_PASSWORD: solar123
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      N8N_SECURE_COOKIE: "false"
+      N8N_RUNNERS_ENABLED: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      GENERIC_TIMEZONE: Europe/Bratislava
+      TZ: Europe/Bratislava
+      # Legacy N8N_BASIC_AUTH_* vars deliberately removed - n8n 1.x uses an
+      # owner account created in the browser on first visit, and the old vars
+      # break REST calls on recent builds.
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./backup:/backup          # target for `n8n export:workflow`
     restart: unless-stopped
 
-  # Python API server (calculator + PDF generator)
+  # ---------------------------------------------------------------
+  # Python API - solar calculator + PDF proposal generator
+  # ---------------------------------------------------------------
   solar_api:
     build: .
     container_name: solar_api
@@ -52,6 +85,12 @@ services:
       - "8000:8000"
     volumes:
       - pdf_output:/app/generated_pdfs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
 volumes:

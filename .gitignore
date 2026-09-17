@@ -50,3 +50,18 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+### Solar Automation — secrets & backups
+# Real environment file (keep .env.example committed)
+.env
+
+# Encrypted n8n credential export and DB dumps — never commit these.
+# backup/workflows.json IS committed on purpose.
+backup/credentials.json
+backup/odoo.sql
+
+# Generated PDF proposals
+generated_pdfs/
+proposal_*.pdf
+
+### JetBrains
+.idea/
