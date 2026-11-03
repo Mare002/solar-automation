@@ -101,6 +101,17 @@ git commit -m "Update API field names and add orientation support; verify end-to
 git push origin main
 ```
 
+## 7. Run the tests
+
+```powershell
+pip install -r requirements-dev.txt
+pytest -v
+```
+
+`tests/test_api.py` uses FastAPI's `TestClient`, so no server or Docker is
+needed: happy path, invalid type → 422, business-rule errors → 400, and a
+generated PDF that really starts with `%PDF`.
+
 ## Files
 
 ```

@@ -21,7 +21,7 @@ from datetime import datetime
 app = FastAPI(title="Solar Automation API", version="1.0.0")
 
 # Directory for generated PDFs
-PDF_DIR = "/app/generated_pdfs"
+PDF_DIR = os.getenv("PDF_DIR", "/app/generated_pdfs")
 os.makedirs(PDF_DIR, exist_ok=True)
 
 
@@ -34,23 +34,14 @@ class CalculateRequest(BaseModel):
     name: str = "Customer"
     email: str = ""
     phone: str = ""
-    monthly_consumption_kwh: Union[str, float] = 350
+    # float, not Union[str, float]: Pydantic converts "350" to 350.0 on its own
+    # and returns 422 for non-numeric text instead of letting it crash the calculator.
+    monthly_consumption_kwh: float = 350
     roof_type: str = "sloped"
     orientation: str = "south"
     location: str = "default"
     wants_battery: str = "No"
-    budget_limit: Optional[Union[str, float]] = None
-
-    @field_validator("monthly_consumption_kwh", "budget_limit", mode="before")
-    def convert_to_float(cls, v):
-        if v is None:
-            return None
-        if isinstance(v, str):
-            try:
-                return float(v)
-            except ValueError:
-                return v
-        return v
+    budget_limit: Optional[float] = None
 
 
 class ProposalRequest(BaseModel):
