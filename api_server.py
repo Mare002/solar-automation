@@ -21,7 +21,7 @@ from datetime import datetime
 app = FastAPI(title="Solar Automation API", version="1.0.0")
 
 # Directory for generated PDFs
-PDF_DIR = "/app/generated_pdfs"
+PDF_DIR = os.getenv("PDF_DIR", "/app/generated_pdfs")
 os.makedirs(PDF_DIR, exist_ok=True)
 
 
