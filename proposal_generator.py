@@ -40,6 +40,7 @@ def generate_proposal(
     result: dict,
     customer_name: str = "Customer",
     customer_email: str = "",
+    customer_phone: str = "",
     company_name: str = "Solar Solutions s.r.o.",
     company_phone: str = "+421 900 000 000",
     company_email: str = "info@solarsolutions.sk",
@@ -53,6 +54,7 @@ def generate_proposal(
         result: Output from calculate_system()
         customer_name: Customer's name
         customer_email: Customer's email
+        customer_phone: Customer's phone number
         company_name: Your company name
         company_phone: Company phone number
         company_email: Company email
@@ -70,6 +72,7 @@ def generate_proposal(
     sys = result["system"]
     fin = result["financials"]
     meta = result["metadata"]
+    location = (sys.get("location") or "").strip()
 
     today = datetime.now()
     valid_until = today + timedelta(days=validity_days)
@@ -110,8 +113,13 @@ def generate_proposal(
     c.setFont("Helvetica-Bold", 11)
     c.drawString(40, height - 205, f"Prepared for: {customer_name}")
     c.setFont("Helvetica", 10)
+    contact_parts = []
     if customer_email:
-        c.drawString(40, height - 220, f"Email: {customer_email}")
+        contact_parts.append(f"Email: {customer_email}")
+    if customer_phone:
+        contact_parts.append(f"Phone: {customer_phone}")
+    if contact_parts:
+        c.drawString(40, height - 220, "   |   ".join(contact_parts))
 
     # ── SYSTEM OVERVIEW SECTION ──
     y = height - 270
@@ -131,7 +139,7 @@ def generate_proposal(
     specs = [
         ("System Power", f"{sys['power_kwp']} kWp", "Optimal for your consumption"),
         ("Panel Count", f"{sys['panel_count']}x {sys['panel_power_wp']}Wp", "High-efficiency panels"),
-        ("Annual Production", f"{sys['annual_production_kwh']} kWh", f"Based on {sys['location'].title()} region"),
+        ("Annual Production", f"{sys['annual_production_kwh']} kWh", f"Based on {location.title()} region" if location else "Based on regional average"),
     ]
 
     for i, (title, value, subtitle) in enumerate(specs):
@@ -163,7 +171,7 @@ def generate_proposal(
 
     details = [
         ("Roof orientation:", sys["orientation"].title()),
-        ("Location:", sys["location"].title()),
+        ("Location:", location.title() or "Not specified"),
         ("Self-consumption ratio:", "70%"),
     ]
 
@@ -323,6 +331,7 @@ if __name__ == "__main__":
         result=result,
         customer_name="Marko Macek",
         customer_email="marko@example.com",
+        customer_phone="+421 900 111 222",
         company_name="Solar Solutions s.r.o.",
         company_phone="+421 900 123 456",
         company_email="info@solarsolutions.sk",
