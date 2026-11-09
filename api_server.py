@@ -15,6 +15,7 @@ from typing import Optional, Union
 from solar_calculator import calculate_system
 from proposal_generator import generate_proposal
 import os
+import unicodedata
 import uuid
 from datetime import datetime
 
@@ -120,7 +121,10 @@ def calculate(req: CalculateRequest):
     """
     battery = req.wants_battery
     if isinstance(battery, str):
-        battery = battery.lower() in ("yes", "true", "1", "ano")
+        # "áno" from the Slovak chatbot counts as yes too
+        plain = unicodedata.normalize("NFKD", battery.strip().lower())
+        plain = "".join(c for c in plain if not unicodedata.combining(c))
+        battery = plain in ("yes", "true", "1", "ano", "a")
 
     location = req.location.strip().lower()
 

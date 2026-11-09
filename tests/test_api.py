@@ -141,3 +141,10 @@ def test_region_names_with_diacritics_are_recognised():
         assert res["system"]["location"] == key, label
         assert res["metadata"]["confidence_score"] == 100, label
     assert _calc(location="Other")["metadata"]["confidence_score"] == 90
+
+
+def test_battery_accepts_slovak_yes():
+    """The chatbot may send "áno"; it must count as a battery, "nie" must not."""
+    assert _calc(wants_battery="áno")["financials"]["battery_price_eur"] > 0
+    assert _calc(wants_battery="Áno")["financials"]["battery_price_eur"] > 0
+    assert _calc(wants_battery="nie")["financials"]["battery_price_eur"] == 0
