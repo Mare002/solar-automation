@@ -15,7 +15,7 @@ from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus import Table, TableStyle
-from solar_calculator import calculate_system
+from solar_calculator import calculate_system, PRODUCTION_KWH_PER_KWP
 from datetime import datetime, timedelta
 
 
@@ -72,10 +72,12 @@ def generate_proposal(
     sys = result["system"]
     fin = result["financials"]
     meta = result["metadata"]
-    # "banska_bystrica" -> "Banska Bystrica"; "default" means no known region
-    location = (sys.get("location") or "").strip().replace("_", " ")
-    if location == "default":
-        location = ""
+    # "banska_bystrica" -> "Banska Bystrica". Only the 8 regions in the
+    # production table have their own yield; anything else ("other", a town
+    # name, "default") is quoted with the national average.
+    location_key = (sys.get("location") or "").strip().lower()
+    known_region = location_key in PRODUCTION_KWH_PER_KWP and location_key != "default"
+    location = "" if location_key in ("", "default", "other") else location_key.replace("_", " ")
 
     today = datetime.now()
     valid_until = today + timedelta(days=validity_days)
@@ -142,7 +144,7 @@ def generate_proposal(
     specs = [
         ("System Power", f"{sys['power_kwp']} kWp", "Optimal for your consumption"),
         ("Panel Count", f"{sys['panel_count']}x {sys['panel_power_wp']}Wp", "High-efficiency panels"),
-        ("Annual Production", f"{sys['annual_production_kwh']} kWh", f"Based on {location.title()} region" if location else "Based on regional average"),
+        ("Annual Production", f"{sys['annual_production_kwh']} kWh", f"Based on {location.title()} region" if known_region else "Based on Slovak average"),
     ]
 
     for i, (title, value, subtitle) in enumerate(specs):

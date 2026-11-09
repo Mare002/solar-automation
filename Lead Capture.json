@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T18:18:05.000Z",
+  "updatedAt": "2026-11-09T18:44:07.480Z",
   "createdAt": "2026-09-15T11:12:37.543Z",
   "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
@@ -8,6 +8,15 @@
   "isArchived": false,
   "nodes": [
     {
+      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
+      "name": "On form submission",
+      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
       "parameters": {
         "formTitle": "Solar System Quote",
         "formDescription": "Tell us about your property and we'll calculate your optimal solar system with pricing and ROI",
@@ -100,23 +109,55 @@
               }
             },
             {
-              "fieldLabel": "Location"
+              "fieldLabel": "Location",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Bratislava"
+                  },
+                  {
+                    "option": "Trnava"
+                  },
+                  {
+                    "option": "Nitra"
+                  },
+                  {
+                    "option": "Trenčín"
+                  },
+                  {
+                    "option": "Žilina"
+                  },
+                  {
+                    "option": "Banská Bystrica"
+                  },
+                  {
+                    "option": "Prešov"
+                  },
+                  {
+                    "option": "Košice"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              }
             }
           ]
         },
         "options": {}
-      },
-      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
-      "name": "On form submission",
-      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.6,
-      "position": [
-        0,
-        0
-      ]
+      }
     },
     {
+      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
+      "name": "Calculator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "onError": "continueErrorOutput",
+      "position": [
+        448,
+        0
+      ],
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/calculate",
@@ -124,26 +165,9 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
         "options": {}
-      },
-      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
-      "name": "Calculator",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        448,
-        0
-      ],
-      "onError": "continueErrorOutput"
+      }
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "http://solar_api:8000/generate-proposal",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
-        "options": {}
-      },
       "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
       "name": "Generate proposal",
       "type": "n8n-nodes-base.httpRequest",
@@ -151,9 +175,25 @@
       "position": [
         896,
         0
-      ]
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://solar_api:8000/generate-proposal",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      }
     },
     {
+      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
+      "name": "Odoo Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "create",
@@ -1378,14 +1418,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
-      "name": "Odoo Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1394,6 +1426,14 @@
       }
     },
     {
+      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        0
+      ],
       "parameters": {
         "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
         "options": {
@@ -1403,24 +1443,9 @@
             }
           }
         }
-      },
-      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
-      "name": "HTTP Request",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        1120,
-        0
-      ]
+      }
     },
     {
-      "parameters": {
-        "operation": "binaryToPropery",
-        "destinationKey": "pdf_base64",
-        "options": {
-          "keepSource": "both"
-        }
-      },
       "id": "d2e0b1f3-0001-4c9a-8b00-000000000001",
       "name": "PDF to Base64",
       "type": "n8n-nodes-base.extractFromFile",
@@ -1428,9 +1453,24 @@
       "position": [
         0,
         240
-      ]
+      ],
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "pdf_base64",
+        "options": {
+          "keepSource": "both"
+        }
+      }
     },
     {
+      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
+      "name": "Update Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -1483,14 +1523,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
-      "name": "Update Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        448,
-        240
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1499,6 +1531,14 @@
       }
     },
     {
+      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
+      "name": "Attach PDF to Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        0,
+        512
+      ],
       "parameters": {
         "resource": "custom",
         "operation": "create",
@@ -1584,14 +1624,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
-      "name": "Attach PDF to Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        0,
-        512
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1600,6 +1632,15 @@
       }
     },
     {
+      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
+      "name": "Send an Email to Customers Mail",
+      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        240
+      ],
       "parameters": {
         "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
         "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
@@ -1610,15 +1651,6 @@
           "fileAttachments": "data"
         }
       },
-      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
-      "name": "Send an Email to Customers Mail",
-      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        224,
-        240
-      ],
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -1627,6 +1659,14 @@
       }
     },
     {
+      "id": "f6906bc1-c0f1-4b2e-a340-64dd70c213ef",
+      "name": "Confidence OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -1649,17 +1689,17 @@
           "combinator": "and"
         },
         "options": {}
-      },
-      "id": "f6906bc1-c0f1-4b2e-a340-64dd70c213ef",
-      "name": "Confidence OK?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        672,
-        0
-      ]
+      }
     },
     {
+      "id": "7130385b-fe83-432d-bcc5-8457d266f6bb",
+      "name": "Reason: Low confidence",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        480
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -1672,17 +1712,17 @@
           ]
         },
         "options": {}
-      },
-      "id": "7130385b-fe83-432d-bcc5-8457d266f6bb",
-      "name": "Reason: Low confidence",
+      }
+    },
+    {
+      "id": "2cf0ec4b-4971-4715-bc79-71fd7dca588c",
+      "name": "Reason: Calculator error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         896,
-        480
-      ]
-    },
-    {
+        672
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -1695,17 +1735,17 @@
           ]
         },
         "options": {}
-      },
-      "id": "2cf0ec4b-4971-4715-bc79-71fd7dca588c",
-      "name": "Reason: Calculator error",
+      }
+    },
+    {
+      "id": "60329a0d-a0ab-4ecb-8a68-2898bf8e2b3e",
+      "name": "Prepare Manual Review",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        896,
-        672
-      ]
-    },
-    {
+        1120,
+        560
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -1730,17 +1770,18 @@
           ]
         },
         "options": {}
-      },
-      "id": "60329a0d-a0ab-4ecb-8a68-2898bf8e2b3e",
-      "name": "Prepare Manual Review",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        1120,
-        560
-      ]
+      }
     },
     {
+      "id": "4796f6a0-9a11-4fab-975e-9ecbfff3238d",
+      "name": "Find Manual Review Tag",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "position": [
+        1344,
+        560
+      ],
       "parameters": {
         "resource": "custom",
         "customResource": {
@@ -1761,15 +1802,6 @@
           ]
         }
       },
-      "id": "4796f6a0-9a11-4fab-975e-9ecbfff3238d",
-      "name": "Find Manual Review Tag",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "alwaysOutputData": true,
-      "position": [
-        1344,
-        560
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1778,6 +1810,14 @@
       }
     },
     {
+      "id": "94b13c8c-9604-4741-a685-ce17a32253be",
+      "name": "Mark for Manual Review",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        560
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -1809,14 +1849,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "94b13c8c-9604-4741-a685-ce17a32253be",
-      "name": "Mark for Manual Review",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        1568,
-        560
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1825,6 +1857,15 @@
       }
     },
     {
+      "id": "8de6e9cd-1da7-4073-b223-286441d424ed",
+      "name": "Alert Sales: Manual Review",
+      "webhookId": "7ef46b48-c236-4ef8-9a33-0b314f3cb6cd",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1792,
+        560
+      ],
       "parameters": {
         "fromEmail": "Solar Automation <adminSolar@gmail.com>",
         "toEmail": "macek4marko@gmail.com",
@@ -1834,15 +1875,6 @@
           "appendAttribution": false
         }
       },
-      "id": "8de6e9cd-1da7-4073-b223-286441d424ed",
-      "name": "Alert Sales: Manual Review",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        1792,
-        560
-      ],
-      "webhookId": "7ef46b48-c236-4ef8-9a33-0b314f3cb6cd",
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -2031,9 +2063,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "80c7d1fc-051e-44c3-8275-5d2631242d8c",
+  "versionId": "e969fbba-8e94-4fae-b393-0ae1f8a49ee9",
   "activeVersionId": null,
-  "versionCounter": 203,
+  "versionCounter": 204,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
