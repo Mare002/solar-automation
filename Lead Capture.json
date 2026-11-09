@@ -1,5 +1,11 @@
 {
+  "updatedAt": "2026-11-09T17:43:43.166Z",
+  "createdAt": "2026-09-15T11:12:37.543Z",
+  "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
+  "description": null,
+  "active": false,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -116,7 +122,7 @@
         "url": "http://solar_api:8000/calculate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
+        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
         "options": {}
       },
       "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
@@ -1614,7 +1620,6 @@
       }
     }
   ],
-  "pinData": {},
   "connections": {
     "On form submission": {
       "main": [
@@ -1705,16 +1710,44 @@
       ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "e2f3badf-7259-4e8f-8df9-2bb34d29717f",
+  "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true
   },
   "nodeGroups": [],
-  "id": "PhFRXhA873DwtvKb",
-  "tags": []
+  "pinData": {},
+  "versionId": "167aa9f3-02b1-4fec-be8a-e28156138391",
+  "activeVersionId": null,
+  "versionCounter": 199,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-15T11:12:37.546Z",
+      "createdAt": "2026-09-15T11:12:37.546Z",
+      "role": "workflow:owner",
+      "workflowId": "PhFRXhA873DwtvKb",
+      "projectId": "o01heyKkvxmOYq1j",
+      "project": {
+        "updatedAt": "2026-09-15T11:11:49.113Z",
+        "createdAt": "2026-09-15T10:58:40.824Z",
+        "id": "o01heyKkvxmOYq1j",
+        "name": "Marko macek4marko@gmail.com <macek4marko@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "56319f05-99a6-438d-8f28-0a60909b51f9"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }
