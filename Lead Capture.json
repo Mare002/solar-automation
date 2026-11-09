@@ -1,5 +1,11 @@
 {
+  "updatedAt": "2026-11-09T18:01:23.027Z",
+  "createdAt": "2026-09-15T11:12:37.543Z",
+  "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
+  "description": null,
+  "active": false,
+  "isArchived": false,
   "nodes": [
     {
       "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
@@ -124,7 +130,7 @@
         "url": "http://solar_api:8000/calculate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
+        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
         "options": {}
       }
     },
@@ -142,7 +148,7 @@
         "url": "http://solar_api:8000/generate-proposal",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"customer_name\": \"{{ $json.customer.name }}\",\n  \"customer_email\": \"{{ $json.customer.email }}\",\n  \"customer_phone\": \"{{ $json.customer.phone }}\",\n  \"system_power_kwp\": {{ $json.system.power_kwp }},\n  \"panel_count\": {{ $json.system.panel_count }},\n  \"annual_production_kwh\": {{ $json.system.annual_production_kwh }},\n  \"system_price_eur\": {{ $json.financials.system_price_eur }},\n  \"payback_years\": {{ $json.financials.payback_years }},\n  \"annual_savings_eur\": {{ $json.financials.annual_savings_eur }}\n}",
+        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       }
     },
@@ -1396,37 +1402,221 @@
         0
       ],
       "parameters": {
-        "method": "GET",
         "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
         "options": {
           "response": {
             "response": {
-              "responseFormat": "file",
-              "outputPropertyName": "data"
+              "responseFormat": "file"
             }
           }
         }
       }
     },
     {
+      "id": "d2e0b1f3-0001-4c9a-8b00-000000000001",
+      "name": "PDF to Base64",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        240
+      ],
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "data",
+        "destinationKey": "pdf_base64",
+        "options": {
+          "keepSource": "both"
+        }
+      }
+    },
+    {
+      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
+      "name": "Update Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
+      "parameters": {
+        "resource": "opportunity",
+        "operation": "update",
+        "opportunityId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Odoo Opportunity').item.json.id }}"
+        },
+        "fieldsToSend": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "expected_revenue": "={{ $('Generate proposal').item.json.financials.total_price_eur }}",
+            "stage_id": 3,
+            "description": "=<p><b>Formulár:</b> {{ $('On form submission').item.json['Monthly kWh'] }} kWh/mesiac, strecha: {{ $('On form submission').item.json['Roof type'] }}, orientácia: {{ $('On form submission').item.json.Orientation }}, lokalita: {{ $('On form submission').item.json.Location }}, batéria: {{ $('On form submission').item.json.Battery }}</p><p><b>Návrh systému:</b> {{ $('Generate proposal').item.json.system.power_kwp }} kWp, {{ $('Generate proposal').item.json.system.panel_count }} panelov, ročná výroba {{ $('Generate proposal').item.json.system.annual_production_kwh }} kWh</p><p><b>Cena:</b> {{ $('Generate proposal').item.json.financials.total_price_eur }} € · <b>Ročná úspora:</b> {{ $('Generate proposal').item.json.financials.annual_savings_eur }} € · <b>Návratnosť:</b> {{ $('Generate proposal').item.json.financials.payback_years }} rokov</p><p>Ponuka {{ $('Generate proposal').item.json.proposal_pdf.filename }} odoslaná e-mailom na {{ $('Generate proposal').item.json.customer.email }}.</p>"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "description",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "expected_revenue",
+              "displayName": "Expected Revenue",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "number"
+            },
+            {
+              "id": "stage_id",
+              "displayName": "Stage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        }
+      },
+      "credentials": {
+        "odooApiKeyApi": {
+          "id": "BTkYqo7dYlSJQoR0",
+          "name": "Odoo (API Key) account"
+        }
+      }
+    },
+    {
+      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
+      "name": "Attach PDF to Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        672,
+        240
+      ],
+      "parameters": {
+        "resource": "custom",
+        "operation": "create",
+        "customResource": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ir.attachment"
+        },
+        "fieldsToSend": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $('Generate proposal').item.json.proposal_pdf.filename }}",
+            "type": "binary",
+            "datas": "={{ $('PDF to Base64').item.json.pdf_base64 }}",
+            "mimetype": "application/pdf",
+            "res_model": "crm.lead",
+            "res_id": "={{ $('Odoo Opportunity').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "datas",
+              "displayName": "File Content (base64)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "mimetype",
+              "displayName": "Mime Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "res_model",
+              "displayName": "Resource Model",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            },
+            {
+              "id": "res_id",
+              "displayName": "Resource ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "number"
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        }
+      },
+      "credentials": {
+        "odooApiKeyApi": {
+          "id": "BTkYqo7dYlSJQoR0",
+          "name": "Odoo (API Key) account"
+        }
+      }
+    },
+    {
       "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
-      "name": "Send an Email",
+      "name": "Send an Email to Customers Mail",
       "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1120,
-        0
+        224,
+        240
       ],
       "parameters": {
         "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
         "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
         "subject": "=Vaša cenová ponuka na fotovoltiku – {{ $('Generate proposal').item.json.system.power_kwp }} kWp",
-        "emailFormat": "html",
-        "html": "=<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#1f2937;line-height:1.5\">\n  <div style=\"background:#f59e0b;padding:20px 24px;border-radius:8px 8px 0 0\">\n    <h1 style=\"margin:0;font-size:22px;color:#ffffff\">Vaša cenová ponuka na fotovoltiku</h1>\n  </div>\n  <div style=\"border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px\">\n    <p>Dobrý deň, {{ $('Generate proposal').item.json.customer.name }},</p>\n    <p>ďakujeme za Váš záujem. Na základe Vašich údajov sme pripravili návrh systému. Podrobnú ponuku nájdete v prílohe (PDF).</p>\n    <table style=\"width:100%;border-collapse:collapse;margin:16px 0;font-size:15px\">\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Výkon systému</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.power_kwp }} kWp</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Počet panelov</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.panel_count }}</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná výroba</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.annual_production_kwh }} kWh</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Cena celkom</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.total_price_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná úspora</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.annual_savings_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Návratnosť</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.payback_years }} rokov</b></td></tr>\n      <tr><td style=\"padding:8px\">Úspora za 25 rokov</td><td style=\"padding:8px;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.savings_25_years_eur }} €</b></td></tr>\n    </table>\n    <p>Ak máte otázky alebo chcete dohodnúť obhliadku, stačí odpovedať na tento e-mail.</p>\n    <p>S pozdravom,<br><b>Solar Solutions s.r.o.</b></p>\n  </div>\n</div>",
+        "html": "=<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#1f2937;line-height:1.5\">\n  <div style=\"background:#f59e0b;padding:20px 24px;border-radius:8px 8px 0 0\">\n    <h1 style=\"margin:0;font-size:22px;color:#ffffff\">Vaša cenová ponuka na fotovoltiku</h1>\n  </div>\n  <div style=\"border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px\">\n    <p>Dobrý deň, {{ $('Generate proposal').item.json.customer.name }},</p>\n    <p>Ďakujeme za Váš záujem. Na základe Vašich údajov sme pripravili návrh systému. Podrobnú ponuku nájdete v prílohe (PDF).</p>\n    <table style=\"width:100%;border-collapse:collapse;margin:16px 0;font-size:15px\">\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Výkon systému</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.power_kwp }} kWp</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Počet panelov</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.panel_count }}</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná výroba</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.annual_production_kwh }} kWh</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Cena celkom</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.total_price_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná úspora</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.annual_savings_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Návratnosť</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.payback_years }} rokov</b></td></tr>\n      <tr><td style=\"padding:8px\">Úspora za 25 rokov</td><td style=\"padding:8px;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.savings_25_years_eur }} €</b></td></tr>\n    </table>\n    <p>Ak máte otázky alebo chcete dohodnúť obhliadku, stačí odpovedať na tento e-mail.</p>\n    <p>S pozdravom,<br><b>Solar Solutions s.r.o.</b></p>\n  </div>\n</div>",
         "options": {
-          "fileAttachments": "data",
-          "appendAttribution": false
+          "appendAttribution": false,
+          "fileAttachments": "data"
         }
       },
       "credentials": {
@@ -1437,7 +1627,6 @@
       }
     }
   ],
-  "pinData": {},
   "connections": {
     "On form submission": {
       "main": [
@@ -1487,7 +1676,40 @@
       "main": [
         [
           {
-            "node": "Send an Email",
+            "node": "PDF to Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to Base64": {
+      "main": [
+        [
+          {
+            "node": "Send an Email to Customers Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Opportunity": {
+      "main": [
+        [
+          {
+            "node": "Attach PDF to Opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email to Customers Mail": {
+      "main": [
+        [
+          {
+            "node": "Update Opportunity",
             "type": "main",
             "index": 0
           }
@@ -1495,16 +1717,44 @@
       ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "7216e73e-6aff-4d53-8f75-c3af3ab21b6f",
+  "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true
   },
   "nodeGroups": [],
-  "id": "PhFRXhA873DwtvKb",
-  "tags": []
+  "pinData": {},
+  "versionId": "e442e570-7913-43fa-9a72-c86d91bec3b8",
+  "activeVersionId": null,
+  "versionCounter": 201,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-15T11:12:37.546Z",
+      "createdAt": "2026-09-15T11:12:37.546Z",
+      "role": "workflow:owner",
+      "workflowId": "PhFRXhA873DwtvKb",
+      "projectId": "o01heyKkvxmOYq1j",
+      "project": {
+        "updatedAt": "2026-09-15T11:11:49.113Z",
+        "createdAt": "2026-09-15T10:58:40.824Z",
+        "id": "o01heyKkvxmOYq1j",
+        "name": "Marko macek4marko@gmail.com <macek4marko@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "56319f05-99a6-438d-8f28-0a60909b51f9"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }

@@ -36,11 +36,14 @@ class CalculateRequest(BaseModel):
     phone: str = ""
     # float, not Union[str, float]: Pydantic converts "350" to 350.0 on its own
     # and returns 422 for non-numeric text instead of letting it crash the calculator.
-    monthly_consumption_kwh: float = 350
+    # Required on purpose: with a default, a misspelled key (e.g. "monthly_kwh")
+    # was silently ignored and every quote used 350 kWh. Now it is a 422.
+    monthly_consumption_kwh: float
     roof_type: str = "sloped"
     orientation: str = "south"
     location: str = "default"
-    wants_battery: str = "No"
+    # "Yes"/"No" from the form, or a JSON boolean. Required for the same reason.
+    wants_battery: Union[bool, str]
     budget_limit: Optional[float] = None
 
 
@@ -63,6 +66,10 @@ class ProposalRequest(BaseModel):
     panel_count: Union[str, int] = 8
     annual_production_kwh: Union[str, float] = 4140
     system_price_eur: Union[str, float] = 3960
+    battery_price_eur: Union[str, float] = 0
+    battery_kwh: Union[str, float] = 0
+    orientation: str = ""
+    location: str = ""
     payback_years: Union[str, float] = 7.9
     annual_savings_eur: Union[str, float] = 554
     company_name: str = "Solar Solutions s.r.o."
@@ -74,6 +81,8 @@ class ProposalRequest(BaseModel):
         "panel_count",
         "annual_production_kwh",
         "system_price_eur",
+        "battery_price_eur",
+        "battery_kwh",
         "payback_years",
         "annual_savings_eur",
         mode="before",
@@ -190,7 +199,11 @@ def create_proposal(req: ProposalRequest):
 
 
 def build_result_from_flat(req: ProposalRequest) -> dict:
-    """Legacy path: rebuild a calculator-shaped result from flat fields."""
+    """Legacy path: rebuild a calculator-shaped result from flat fields.
+
+    Prefer sending the whole /calculate output. If flat fields are used, the
+    battery, orientation and location must be sent too, or they are lost.
+    """
     # Ensure numeric fields are floats/ints
     system_power_kwp = float(req.system_power_kwp) if req.system_power_kwp else 3.6
     panel_count = int(req.panel_count) if req.panel_count else 8
@@ -198,6 +211,9 @@ def build_result_from_flat(req: ProposalRequest) -> dict:
     system_price_eur = float(req.system_price_eur) if req.system_price_eur else 3960
     payback_years = float(req.payback_years) if req.payback_years else 7.9
     annual_savings_eur = float(req.annual_savings_eur) if req.annual_savings_eur else 554
+    battery_price_eur = float(req.battery_price_eur or 0)
+    battery_kwh = float(req.battery_kwh or 0)
+    total_price_eur = system_price_eur + battery_price_eur
 
     result = {
         "success": True,
@@ -206,18 +222,18 @@ def build_result_from_flat(req: ProposalRequest) -> dict:
             "panel_count": panel_count,
             "panel_power_wp": 450,
             "annual_production_kwh": annual_production_kwh,
-            "orientation": "south",
-            "location": "default"
+            "orientation": req.orientation or "south",
+            "location": req.location or "default"
         },
         "financials": {
             "system_price_eur": system_price_eur,
-            "battery_price_eur": 0,
-            "battery_kwh": 0,
-            "total_price_eur": system_price_eur,
+            "battery_price_eur": battery_price_eur,
+            "battery_kwh": battery_kwh,
+            "total_price_eur": total_price_eur,
             "annual_savings_eur": annual_savings_eur,
             "payback_years": payback_years,
             "savings_25_years_eur": int(annual_savings_eur * 25),
-            "net_profit_25_years_eur": int(annual_savings_eur * 25 - system_price_eur),
+            "net_profit_25_years_eur": int(annual_savings_eur * 25 - total_price_eur),
             "over_budget": False
         },
         "metadata": {
