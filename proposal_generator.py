@@ -72,7 +72,10 @@ def generate_proposal(
     sys = result["system"]
     fin = result["financials"]
     meta = result["metadata"]
-    location = (sys.get("location") or "").strip()
+    # "banska_bystrica" -> "Banska Bystrica"; "default" means no known region
+    location = (sys.get("location") or "").strip().replace("_", " ")
+    if location == "default":
+        location = ""
 
     today = datetime.now()
     valid_until = today + timedelta(days=validity_days)
@@ -172,6 +175,7 @@ def generate_proposal(
     details = [
         ("Roof orientation:", sys["orientation"].title()),
         ("Location:", location.title() or "Not specified"),
+        ("Roof type:", (sys.get("roof_type") or "Not specified").title()),
         ("Self-consumption ratio:", "70%"),
     ]
 

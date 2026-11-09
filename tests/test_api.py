@@ -109,3 +109,35 @@ def test_confidence_lowered_for_every_weak_orientation():
         assert score(o) == 100, o
     for o in ("east", "west", "northeast", "northwest", "north"):
         assert score(o) == 90, o
+
+
+def _calc(**fields):
+    body = {"monthly_consumption_kwh": 350, "wants_battery": "No", "location": "bratislava", **fields}
+    return client.post("/calculate", json=body).json()
+
+
+def test_roof_types_from_form_are_mapped():
+    """Every roof option in the form maps to sloped / flat / other."""
+    expected = {
+        "Sloped (pitched)": "sloped", "Metal": "sloped", "Tile": "sloped",
+        "Flat": "flat", "Concrete": "flat", "Other": "other",
+    }
+    for label, roof in expected.items():
+        assert _calc(roof_type=label)["system"]["roof_type"] == roof, label
+
+
+def test_roof_type_affects_confidence():
+    """Flat and unknown roofs need more checking than a pitched roof."""
+    assert _calc(roof_type="Tile")["metadata"]["confidence_score"] == 100
+    assert _calc(roof_type="Concrete")["metadata"]["confidence_score"] == 95
+    assert _calc(roof_type="Other")["metadata"]["confidence_score"] == 95
+
+
+def test_region_names_with_diacritics_are_recognised():
+    """Dropdown labels (with diacritics and spaces) hit the regional production table."""
+    for label, key in {"Banská Bystrica": "banska_bystrica", "Trenčín": "trencin",
+                       "Žilina": "zilina", "Prešov": "presov", "Košice": "kosice"}.items():
+        res = _calc(location=label)
+        assert res["system"]["location"] == key, label
+        assert res["metadata"]["confidence_score"] == 100, label
+    assert _calc(location="Other")["metadata"]["confidence_score"] == 90
