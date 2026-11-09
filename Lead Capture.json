@@ -2,6 +2,15 @@
   "name": "Lead Capture",
   "nodes": [
     {
+      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
+      "name": "On form submission",
+      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
       "parameters": {
         "formTitle": "Solar System Quote",
         "formDescription": "Tell us about your property and we'll calculate your optimal solar system with pricing and ROI",
@@ -99,18 +108,17 @@
           ]
         },
         "options": {}
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.6,
-      "position": [
-        0,
-        0
-      ],
-      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
-      "name": "On form submission",
-      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9"
+      }
     },
     {
+      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
+      "name": "Calculator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/calculate",
@@ -118,17 +126,17 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
         "options": {}
-      },
+      }
+    },
+    {
+      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
+      "name": "Generate proposal",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        448,
+        672,
         0
       ],
-      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
-      "name": "Calculator"
-    },
-    {
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/generate-proposal",
@@ -136,17 +144,17 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"customer_name\": \"{{ $json.customer.name }}\",\n  \"customer_email\": \"{{ $json.customer.email }}\",\n  \"customer_phone\": \"{{ $json.customer.phone }}\",\n  \"system_power_kwp\": {{ $json.system.power_kwp }},\n  \"panel_count\": {{ $json.system.panel_count }},\n  \"annual_production_kwh\": {{ $json.system.annual_production_kwh }},\n  \"system_price_eur\": {{ $json.financials.system_price_eur }},\n  \"payback_years\": {{ $json.financials.payback_years }},\n  \"annual_savings_eur\": {{ $json.financials.annual_savings_eur }}\n}",
         "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        672,
-        0
-      ],
-      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
-      "name": "Generate proposal"
+      }
     },
     {
+      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
+      "name": "Odoo Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "create",
@@ -1371,18 +1379,60 @@
           "convertFieldsToString": false
         }
       },
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
-      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
-      "name": "Odoo Opportunity",
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
           "name": "Odoo (API Key) account"
+        }
+      }
+    },
+    {
+      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
+      "name": "Send an Email",
+      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        0
+      ],
+      "parameters": {
+        "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
+        "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
+        "subject": "=Vaša cenová ponuka na fotovoltiku – {{ $('Generate proposal').item.json.system.power_kwp }} kWp",
+        "emailFormat": "html",
+        "html": "=<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#1f2937;line-height:1.5\">\n  <div style=\"background:#f59e0b;padding:20px 24px;border-radius:8px 8px 0 0\">\n    <h1 style=\"margin:0;font-size:22px;color:#ffffff\">Vaša cenová ponuka na fotovoltiku</h1>\n  </div>\n  <div style=\"border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px\">\n    <p>Dobrý deň, {{ $('Generate proposal').item.json.customer.name }},</p>\n    <p>ďakujeme za Váš záujem. Na základe Vašich údajov sme pripravili návrh systému. Podrobnú ponuku nájdete v prílohe (PDF).</p>\n    <table style=\"width:100%;border-collapse:collapse;margin:16px 0;font-size:15px\">\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Výkon systému</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.power_kwp }} kWp</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Počet panelov</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.panel_count }}</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná výroba</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.system.annual_production_kwh }} kWh</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Cena celkom</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.total_price_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Ročná úspora</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.annual_savings_eur }} €</b></td></tr>\n      <tr><td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">Návratnosť</td><td style=\"padding:8px;border-bottom:1px solid #e5e7eb;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.payback_years }} rokov</b></td></tr>\n      <tr><td style=\"padding:8px\">Úspora za 25 rokov</td><td style=\"padding:8px;text-align:right\"><b>{{ $('Generate proposal').item.json.financials.savings_25_years_eur }} €</b></td></tr>\n    </table>\n    <p>Ak máte otázky alebo chcete dohodnúť obhliadku, stačí odpovedať na tento e-mail.</p>\n    <p>S pozdravom,<br><b>Solar Solutions s.r.o.</b></p>\n  </div>\n</div>",
+        "options": {
+          "fileAttachments": "data",
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "smtp": {
+          "id": "kiYBA90UbTsrhyZM",
+          "name": "SMTP account"
         }
       }
     }
@@ -1413,7 +1463,13 @@
     },
     "Generate proposal": {
       "main": [
-        []
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Odoo Opportunity": {
@@ -1426,6 +1482,17 @@
           }
         ]
       ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1433,10 +1500,9 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "87d2d87e-ac6e-4216-87f3-79ca8a631bee",
+  "versionId": "7216e73e-6aff-4d53-8f75-c3af3ab21b6f",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "24bd055bf61ed258f7612ca5aff18f0e1dfab1de27451fa81b95af4004d36a4c"
+    "templateCredsSetupCompleted": true
   },
   "nodeGroups": [],
   "id": "PhFRXhA873DwtvKb",
