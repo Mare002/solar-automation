@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T17:43:43.166Z",
+  "updatedAt": "2026-11-09T17:51:59.060Z",
   "createdAt": "2026-09-15T11:12:37.543Z",
   "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
@@ -8,6 +8,15 @@
   "isArchived": false,
   "nodes": [
     {
+      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
+      "name": "On form submission",
+      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
       "parameters": {
         "formTitle": "Solar System Quote",
         "formDescription": "Tell us about your property and we'll calculate your optimal solar system with pricing and ROI",
@@ -105,26 +114,9 @@
           ]
         },
         "options": {}
-      },
-      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
-      "name": "On form submission",
-      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.6,
-      "position": [
-        0,
-        0
-      ]
+      }
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "http://solar_api:8000/calculate",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
-        "options": {}
-      },
       "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
       "name": "Calculator",
       "type": "n8n-nodes-base.httpRequest",
@@ -132,17 +124,17 @@
       "position": [
         448,
         0
-      ]
-    },
-    {
+      ],
       "parameters": {
         "method": "POST",
-        "url": "http://solar_api:8000/generate-proposal",
+        "url": "http://solar_api:8000/calculate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"customer_name\": \"{{ $json.customer.name }}\",\n  \"customer_email\": \"{{ $json.customer.email }}\",\n  \"customer_phone\": \"{{ $json.customer.phone }}\",\n  \"system_power_kwp\": {{ $json.system.power_kwp }},\n  \"panel_count\": {{ $json.system.panel_count }},\n  \"annual_production_kwh\": {{ $json.system.annual_production_kwh }},\n  \"system_price_eur\": {{ $json.financials.system_price_eur }},\n  \"payback_years\": {{ $json.financials.payback_years }},\n  \"annual_savings_eur\": {{ $json.financials.annual_savings_eur }}\n}",
+        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
         "options": {}
-      },
+      }
+    },
+    {
       "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
       "name": "Generate proposal",
       "type": "n8n-nodes-base.httpRequest",
@@ -150,9 +142,25 @@
       "position": [
         672,
         0
-      ]
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://solar_api:8000/generate-proposal",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"customer_name\": \"{{ $json.customer.name }}\",\n  \"customer_email\": \"{{ $json.customer.email }}\",\n  \"customer_phone\": \"{{ $json.customer.phone }}\",\n  \"system_power_kwp\": {{ $json.system.power_kwp }},\n  \"panel_count\": {{ $json.system.panel_count }},\n  \"annual_production_kwh\": {{ $json.system.annual_production_kwh }},\n  \"system_price_eur\": {{ $json.financials.system_price_eur }},\n  \"payback_years\": {{ $json.financials.payback_years }},\n  \"annual_savings_eur\": {{ $json.financials.annual_savings_eur }}\n}",
+        "options": {}
+      }
     },
     {
+      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
+      "name": "Odoo Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "create",
@@ -1377,14 +1385,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
-      "name": "Odoo Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1393,6 +1393,14 @@
       }
     },
     {
+      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ],
       "parameters": {
         "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
         "options": {
@@ -1402,28 +1410,35 @@
             }
           }
         }
-      },
-      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
-      "name": "HTTP Request",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        896,
-        0
-      ]
+      }
     },
     {
-      "parameters": {},
       "id": "d2e0b1f3-0001-4c9a-8b00-000000000001",
       "name": "PDF to Base64",
       "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1.2,
+      "typeVersion": 1.1,
       "position": [
         0,
         240
-      ]
+      ],
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "data",
+        "destinationKey": "pdf_base64",
+        "options": {
+          "keepSource": "both"
+        }
+      }
     },
     {
+      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
+      "name": "Update Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -1476,14 +1491,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
-      "name": "Update Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        448,
-        240
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1492,6 +1499,14 @@
       }
     },
     {
+      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
+      "name": "Attach PDF to Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        672,
+        240
+      ],
       "parameters": {
         "resource": "custom",
         "operation": "create",
@@ -1577,14 +1592,6 @@
           "convertFieldsToString": false
         }
       },
-      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
-      "name": "Attach PDF to Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        672,
-        240
-      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1593,6 +1600,15 @@
       }
     },
     {
+      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
+      "name": "Send an Email to Customers Mail",
+      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        240
+      ],
       "parameters": {
         "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
         "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
@@ -1603,15 +1619,6 @@
           "fileAttachments": "data"
         }
       },
-      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
-      "name": "Send an Email to Customers Mail",
-      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        224,
-        240
-      ],
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -1720,9 +1727,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "167aa9f3-02b1-4fec-be8a-e28156138391",
+  "versionId": "734f63b4-212d-4999-ae7a-7f046f0c327c",
   "activeVersionId": null,
-  "versionCounter": 199,
+  "versionCounter": 200,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
