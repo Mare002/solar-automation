@@ -95,3 +95,17 @@ def test_generate_proposal_flat_fields_keep_battery():
     assert fin["battery_price_eur"] == 500
     assert fin["total_price_eur"] == 1985
     assert prop["system"]["orientation"] == "east"
+
+
+def test_confidence_lowered_for_every_weak_orientation():
+    """All orientations under 90 % production lose 10 points; south-ish ones do not."""
+    def score(orientation):
+        return client.post("/calculate", json={
+            "monthly_consumption_kwh": 350, "wants_battery": "No",
+            "orientation": orientation, "location": "bratislava",
+        }).json()["metadata"]["confidence_score"]
+
+    for o in ("south", "southeast", "southwest"):
+        assert score(o) == 100, o
+    for o in ("east", "west", "northeast", "northwest", "north"):
+        assert score(o) == 90, o

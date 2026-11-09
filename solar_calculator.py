@@ -229,8 +229,10 @@ def calculate_confidence(consumption, orientation, location, roof_type) -> int:
     if consumption < 100 or consumption > 2000:
         score -= 15
 
-    # Suboptimal orientation = less predictable result
-    if orientation.lower() in ("north", "west", "east"):
+    # Suboptimal orientation = less predictable result.
+    # Uses the same coefficients as the production estimate, so every
+    # orientation below 90 % (east, west, northeast, northwest, north) counts.
+    if ORIENTATION_COEFFICIENT.get(orientation.lower(), 0) < 0.90:
         score -= 10
 
     # Unknown location
