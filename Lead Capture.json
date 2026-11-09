@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T18:01:23.027Z",
+  "updatedAt": "2026-11-09T18:18:05.000Z",
   "createdAt": "2026-09-15T11:12:37.543Z",
   "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
@@ -8,15 +8,6 @@
   "isArchived": false,
   "nodes": [
     {
-      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
-      "name": "On form submission",
-      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.6,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "formTitle": "Solar System Quote",
         "formDescription": "Tell us about your property and we'll calculate your optimal solar system with pricing and ROI",
@@ -114,9 +105,26 @@
           ]
         },
         "options": {}
-      }
+      },
+      "id": "52a6d2d9-4821-4730-9257-ee152325d05e",
+      "name": "On form submission",
+      "webhookId": "8e02d8f1-ada9-4f70-bbd9-445167f4cdd9",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "method": "POST",
+        "url": "http://solar_api:8000/calculate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
+        "options": {}
+      },
       "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
       "name": "Calculator",
       "type": "n8n-nodes-base.httpRequest",
@@ -125,24 +133,9 @@
         448,
         0
       ],
-      "parameters": {
-        "method": "POST",
-        "url": "http://solar_api:8000/calculate",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"{{ $node[\"On form submission\"].json[\"Name\"] }}\",\n  \"email\": \"{{ $node[\"On form submission\"].json[\"Email\"] }}\",\n  \"phone\": \"{{ $node[\"On form submission\"].json[\"Phone\"] }}\",\n  \"monthly_consumption_kwh\": {{ $node[\"On form submission\"].json[\"Monthly kWh\"] }},\n  \"roof_type\": \"{{ $node[\"On form submission\"].json[\"Roof type\"] }}\",\n  \"orientation\": \"{{ $node[\"On form submission\"].json[\"Orientation\"] }}\",\n  \"wants_battery\": \"{{ $node[\"On form submission\"].json[\"Battery\"] }}\",\n  \"location\": \"{{ $node[\"On form submission\"].json[\"Location\"] }}\"\n}",
-        "options": {}
-      }
+      "onError": "continueErrorOutput"
     },
     {
-      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
-      "name": "Generate proposal",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        672,
-        0
-      ],
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/generate-proposal",
@@ -150,17 +143,17 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
-      }
+      },
+      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
+      "name": "Generate proposal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ]
     },
     {
-      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
-      "name": "Odoo Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "create",
@@ -1385,6 +1378,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
+      "name": "Odoo Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1393,14 +1394,6 @@
       }
     },
     {
-      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
-      "name": "HTTP Request",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        896,
-        0
-      ],
       "parameters": {
         "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
         "options": {
@@ -1410,9 +1403,24 @@
             }
           }
         }
-      }
+      },
+      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "pdf_base64",
+        "options": {
+          "keepSource": "both"
+        }
+      },
       "id": "d2e0b1f3-0001-4c9a-8b00-000000000001",
       "name": "PDF to Base64",
       "type": "n8n-nodes-base.extractFromFile",
@@ -1420,25 +1428,9 @@
       "position": [
         0,
         240
-      ],
-      "parameters": {
-        "operation": "binaryToPropery",
-        "binaryPropertyName": "data",
-        "destinationKey": "pdf_base64",
-        "options": {
-          "keepSource": "both"
-        }
-      }
+      ]
     },
     {
-      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
-      "name": "Update Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        448,
-        240
-      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -1491,6 +1483,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
+      "name": "Update Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1499,14 +1499,6 @@
       }
     },
     {
-      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
-      "name": "Attach PDF to Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        672,
-        240
-      ],
       "parameters": {
         "resource": "custom",
         "operation": "create",
@@ -1592,6 +1584,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
+      "name": "Attach PDF to Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        0,
+        512
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -1600,15 +1600,6 @@
       }
     },
     {
-      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
-      "name": "Send an Email to Customers Mail",
-      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        224,
-        240
-      ],
       "parameters": {
         "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
         "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
@@ -1619,6 +1610,239 @@
           "fileAttachments": "data"
         }
       },
+      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
+      "name": "Send an Email to Customers Mail",
+      "webhookId": "339a229f-01aa-4434-b06d-0c79d6596e23",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        240
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "kiYBA90UbTsrhyZM",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c1a0f001-0000-4000-8000-000000000001",
+              "leftValue": "={{ $json.metadata.confidence_score }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f6906bc1-c0f1-4b2e-a340-64dd70c213ef",
+      "name": "Confidence OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1000000-0000-4000-8000-000000000001",
+              "name": "review_reason",
+              "value": "=Nízka istota výpočtu: {{ $json.metadata.confidence_score }} % (limit 70 %). Návrh: {{ $json.system.power_kwp }} kWp, {{ $json.financials.total_price_eur }} €.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7130385b-fe83-432d-bcc5-8457d266f6bb",
+      "name": "Reason: Low confidence",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r2000000-0000-4000-8000-000000000002",
+              "name": "review_reason",
+              "value": "=Výpočet zlyhal: {{ $json.error?.message || JSON.stringify($json).slice(0, 300) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2cf0ec4b-4971-4715-bc79-71fd7dca588c",
+      "name": "Reason: Calculator error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1000000-0000-4000-8000-000000000001",
+              "name": "review_reason",
+              "value": "={{ $json.review_reason }}",
+              "type": "string"
+            },
+            {
+              "id": "p2000000-0000-4000-8000-000000000002",
+              "name": "lead_id",
+              "value": "={{ $('Odoo Opportunity').item.json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "p3000000-0000-4000-8000-000000000003",
+              "name": "description",
+              "value": "=<p><b>Na manuálnu kontrolu:</b> {{ $json.review_reason }}</p><p><b>Formulár:</b> {{ $('On form submission').item.json['Monthly kWh'] }} kWh/mesiac, strecha: {{ $('On form submission').item.json['Roof type'] }}, orientácia: {{ $('On form submission').item.json.Orientation }}, lokalita: {{ $('On form submission').item.json.Location }}, batéria: {{ $('On form submission').item.json.Battery }}</p><p><b>Kontakt:</b> {{ $('On form submission').item.json.Name }}, {{ $('On form submission').item.json.Email }}, {{ $('On form submission').item.json.Phone }}</p><p>Automatická ponuka zákazníkovi <b>nebola</b> odoslaná.</p>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "60329a0d-a0ab-4ecb-8a68-2898bf8e2b3e",
+      "name": "Prepare Manual Review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "custom",
+        "customResource": {
+          "__rl": true,
+          "mode": "id",
+          "value": "crm.tag"
+        },
+        "limit": 1,
+        "options": {
+          "fieldsList": "id,name"
+        },
+        "filters": {
+          "filter": [
+            {
+              "fieldName": "name",
+              "value": "Manual review"
+            }
+          ]
+        }
+      },
+      "id": "4796f6a0-9a11-4fab-975e-9ecbfff3238d",
+      "name": "Find Manual Review Tag",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "position": [
+        1344,
+        560
+      ],
+      "credentials": {
+        "odooApiKeyApi": {
+          "id": "BTkYqo7dYlSJQoR0",
+          "name": "Odoo (API Key) account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "opportunity",
+        "operation": "update",
+        "opportunityId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Prepare Manual Review').item.json.lead_id }}"
+        },
+        "fieldsToSend": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "description": "={{ $('Prepare Manual Review').item.json.description }}",
+            "tag_ids": "={{ $json.id ? [[4, $json.id]] : [] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "description",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "removed": false,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "94b13c8c-9604-4741-a685-ce17a32253be",
+      "name": "Mark for Manual Review",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        560
+      ],
+      "credentials": {
+        "odooApiKeyApi": {
+          "id": "BTkYqo7dYlSJQoR0",
+          "name": "Odoo (API Key) account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "Solar Automation <adminSolar@gmail.com>",
+        "toEmail": "macek4marko@gmail.com",
+        "subject": "=Manuálna kontrola: {{ $('On form submission').item.json.Name }} (lead {{ $('Prepare Manual Review').item.json.lead_id }})",
+        "html": "=<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;color:#1f2937;line-height:1.5\"><h2 style=\"color:#b45309;margin:0 0 12px\">Lead potrebuje manuálnu ponuku</h2><p><b>Dôvod:</b> {{ $('Prepare Manual Review').item.json.review_reason }}</p><p><b>Zákazník:</b> {{ $('On form submission').item.json.Name }}, {{ $('On form submission').item.json.Email }}, {{ $('On form submission').item.json.Phone }}</p><p><b>Formulár:</b> {{ $('On form submission').item.json['Monthly kWh'] }} kWh/mesiac, strecha: {{ $('On form submission').item.json['Roof type'] }}, orientácia: {{ $('On form submission').item.json.Orientation }}, lokalita: {{ $('On form submission').item.json.Location }}, batéria: {{ $('On form submission').item.json.Battery }}</p><p>Zákazník automatickú ponuku <b>nedostal</b>. {{ $('Find Manual Review Tag').item.json.id ? 'V Odoo má tag „Manual review“.' : 'POZOR: tag „Manual review“ v Odoo neexistuje, lead nie je otagovaný.' }}</p><p><a href=\"http://localhost:8069/odoo/crm/{{ $('Prepare Manual Review').item.json.lead_id }}\">Otvoriť príležitosť v Odoo</a></p></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8de6e9cd-1da7-4073-b223-286441d424ed",
+      "name": "Alert Sales: Manual Review",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1792,
+        560
+      ],
+      "webhookId": "7ef46b48-c236-4ef8-9a33-0b314f3cb6cd",
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -1633,17 +1857,6 @@
         [
           {
             "node": "Odoo Opportunity",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Calculator": {
-      "main": [
-        [
-          {
-            "node": "Generate proposal",
             "type": "main",
             "index": 0
           }
@@ -1715,6 +1928,97 @@
           }
         ]
       ]
+    },
+    "Calculator": {
+      "main": [
+        [
+          {
+            "node": "Confidence OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reason: Calculator error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confidence OK?": {
+      "main": [
+        [
+          {
+            "node": "Generate proposal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reason: Low confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reason: Low confidence": {
+      "main": [
+        [
+          {
+            "node": "Prepare Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reason: Calculator error": {
+      "main": [
+        [
+          {
+            "node": "Prepare Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Manual Review": {
+      "main": [
+        [
+          {
+            "node": "Find Manual Review Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Manual Review Tag": {
+      "main": [
+        [
+          {
+            "node": "Mark for Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark for Manual Review": {
+      "main": [
+        [
+          {
+            "node": "Alert Sales: Manual Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -1727,9 +2031,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "e442e570-7913-43fa-9a72-c86d91bec3b8",
+  "versionId": "80c7d1fc-051e-44c3-8275-5d2631242d8c",
   "activeVersionId": null,
-  "versionCounter": 201,
+  "versionCounter": 203,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
