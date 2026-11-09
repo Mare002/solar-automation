@@ -6,6 +6,8 @@ Inputs: monthly consumption, roof type, orientation, location
 Outputs: system power, panel count, annual production, price, ROI
 """
 
+import unicodedata
+
 # ============================================================
 # CONFIGURATION - adjust these values per supplier
 # ============================================================
@@ -51,6 +53,21 @@ PRODUCTION_KWH_PER_KWP = {
     "default": 1100,
 }
 
+# Roof types offered in the form -> what the calculator works with.
+# Metal and tile roofs are almost always pitched in Slovakia, concrete roofs flat.
+# "other" is kept as its own value: the quote is made as for a sloped roof,
+# but the confidence score drops so a person checks it.
+ROOF_TYPE_MAP = {
+    "sloped": "sloped",
+    "sloped (pitched)": "sloped",
+    "pitched": "sloped",
+    "metal": "sloped",
+    "tile": "sloped",
+    "flat": "flat",
+    "concrete": "flat",
+    "other": "other",
+}
+
 # Limits
 MIN_CONSUMPTION_KWH = 50
 MAX_CONSUMPTION_KWH = 5000
@@ -83,6 +100,9 @@ def calculate_system(
     Returns:
         dict with complete system proposal
     """
+
+    roof_type = normalize_roof_type(roof_type)
+    location = normalize_location(location)
 
     # --- INPUT VALIDATION ---
     errors = validate_inputs(monthly_consumption_kwh, orientation, location)
@@ -174,6 +194,7 @@ def calculate_system(
             "annual_production_kwh": annual_production,
             "orientation": orientation,
             "location": location,
+            "roof_type": roof_type,
         },
         "financials": {
             "system_price_eur": system_price,
@@ -192,6 +213,22 @@ def calculate_system(
             "note": limit_note,
         },
     }
+
+
+# ============================================================
+# INPUT NORMALISATION
+# ============================================================
+
+def normalize_roof_type(roof_type: str) -> str:
+    """Map a form label (e.g. "Tile", "Sloped (pitched)") to sloped / flat / other."""
+    return ROOF_TYPE_MAP.get((roof_type or "").strip().lower(), "other")
+
+
+def normalize_location(location: str) -> str:
+    """"Banská Bystrica" / "Trenčín" -> "banska_bystrica" / "trencin" (keys of PRODUCTION_KWH_PER_KWP)."""
+    text = unicodedata.normalize("NFKD", (location or "").strip().lower())
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return "_".join(text.replace("-", " ").split()) or "default"
 
 
 # ============================================================
@@ -239,8 +276,8 @@ def calculate_confidence(consumption, orientation, location, roof_type) -> int:
     if location.lower() not in PRODUCTION_KWH_PER_KWP:
         score -= 10
 
-    # Flat roof = more complex installation
-    if roof_type.lower() == "flat":
+    # Flat roof = more complex installation; unknown roof = needs a site check
+    if roof_type in ("flat", "other"):
         score -= 5
 
     return max(score, 0)
