@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T17:51:59.060Z",
+  "updatedAt": "2026-11-09T18:01:23.027Z",
   "createdAt": "2026-09-15T11:12:37.543Z",
   "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
@@ -148,7 +148,7 @@
         "url": "http://solar_api:8000/generate-proposal",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"customer_name\": \"{{ $json.customer.name }}\",\n  \"customer_email\": \"{{ $json.customer.email }}\",\n  \"customer_phone\": \"{{ $json.customer.phone }}\",\n  \"system_power_kwp\": {{ $json.system.power_kwp }},\n  \"panel_count\": {{ $json.system.panel_count }},\n  \"annual_production_kwh\": {{ $json.system.annual_production_kwh }},\n  \"system_price_eur\": {{ $json.financials.system_price_eur }},\n  \"payback_years\": {{ $json.financials.payback_years }},\n  \"annual_savings_eur\": {{ $json.financials.annual_savings_eur }}\n}",
+        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       }
     },
@@ -1727,9 +1727,9 @@
   },
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "734f63b4-212d-4999-ae7a-7f046f0c327c",
+  "versionId": "e442e570-7913-43fa-9a72-c86d91bec3b8",
   "activeVersionId": null,
-  "versionCounter": 200,
+  "versionCounter": 201,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
