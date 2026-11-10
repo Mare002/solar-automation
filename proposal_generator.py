@@ -43,7 +43,7 @@ def generate_proposal(
     customer_phone: str = "",
     company_name: str = "Solar Solutions s.r.o.",
     company_phone: str = "+421 900 000 000",
-    company_email: str = "info@solarsolutions.sk",
+    company_email: str = "info@solarsolutions.example",
     output_path: str = "proposal.pdf",
     validity_days: int = 30,
 ):
@@ -340,6 +340,6 @@ if __name__ == "__main__":
         customer_phone="+421 900 111 222",
         company_name="Solar Solutions s.r.o.",
         company_phone="+421 900 123 456",
-        company_email="info@solarsolutions.sk",
+        company_email="info@solarsolutions.example",
         output_path="proposal.pdf",
     )
