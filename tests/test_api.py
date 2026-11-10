@@ -148,3 +148,11 @@ def test_battery_accepts_slovak_yes():
     assert _calc(wants_battery="áno")["financials"]["battery_price_eur"] > 0
     assert _calc(wants_battery="Áno")["financials"]["battery_price_eur"] > 0
     assert _calc(wants_battery="nie")["financials"]["battery_price_eur"] == 0
+
+
+def test_demo_page_links_to_form_and_chat():
+    """The landing page is served at / and points to the n8n form and chat."""
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "/form/" in resp.text and "/chat" in resp.text

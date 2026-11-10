@@ -6,6 +6,7 @@ Endpoints:
     POST /calculate        - Calculate solar system from customer data
     POST /generate-proposal - Generate PDF proposal and return file path
     GET  /health           - Health check
+    GET  /                 - Demo landing page (links to the n8n form and chat)
 """
 
 from fastapi import FastAPI, HTTPException
@@ -106,6 +107,15 @@ class ProposalRequest(BaseModel):
 # ============================================================
 # ENDPOINTS
 # ============================================================
+
+DEMO_PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "demo", "index.html")
+
+
+@app.get("/", include_in_schema=False)
+def demo_page():
+    """Demo landing page with links to the n8n form and chat."""
+    return FileResponse(DEMO_PAGE, media_type="text/html")
+
 
 @app.get("/health")
 def health_check():
