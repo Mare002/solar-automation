@@ -76,7 +76,7 @@ class ProposalRequest(BaseModel):
     annual_savings_eur: Union[str, float] = 554
     company_name: str = "Solar Solutions s.r.o."
     company_phone: str = "+421 900 000 000"
-    company_email: str = "info@solarsolutions.sk"
+    company_email: str = "info@solarsolutions.example"
 
     @field_validator(
         "system_power_kwp",

@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------
-  # Odoo 17 Community - CRM and sales pipeline
+  # Odoo 19 Community - CRM and sales pipeline
   # ---------------------------------------------------------------
   odoo:
     image: odoo:19

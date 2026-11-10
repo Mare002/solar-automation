@@ -12,13 +12,13 @@ if (-not (Test-Path .\backup\workflows.json)) {
 }
 
 Write-Host "[1/3] Importing n8n workflows..."
-docker exec solar_n8n n8n import:workflow --separate --input=/backup/workflows.json
+docker exec solar_n8n n8n import:workflow --input=/backup/workflows.json
 
 if (Test-Path .\backup\credentials.json) {
     Write-Host "[2/3] Importing n8n credentials..."
     docker exec solar_n8n n8n import:credentials --input=/backup/credentials.json
 } else {
-    Write-Host "[2/3] No credentials.json - re-enter the Groq and Odoo credentials by hand."
+    Write-Host "[2/3] No credentials.json - re-enter the Odoo, SMTP and Groq credentials by hand."
 }
 
 if (Test-Path .\backup\odoo.sql) {
@@ -27,7 +27,7 @@ if (Test-Path .\backup\odoo.sql) {
     docker cp .\backup\odoo.sql solar_postgres:/tmp/odoo.sql
     docker exec solar_postgres psql -U odoo -d $dbName -f /tmp/odoo.sql
 } else {
-    Write-Host "[3/3] No odoo.sql - recreate the pipeline stages manually (see README)."
+    Write-Host "[3/3] No odoo.sql - create the database 'solar', install CRM and create the tag 'Manual review' (see README)."
 }
 
 Write-Host ""
