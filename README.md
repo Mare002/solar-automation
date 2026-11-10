@@ -1,143 +1,124 @@
-# Solar Sales Automation — setup on a new machine
+# Solar Sales Automation
 
-Status: **Fully rebuilt on new machine** (2026-09-17). Python API, Docker stack,
-n8n workflows, and Odoo database have been recreated and tested end-to-end.
-Complete workflow verified: form submission → Odoo opportunity creation →
-solar system calculation → PDF proposal generation with customer data.
+An automated lead-to-quote pipeline for a residential solar installer. A customer fills in a form or chats with an
+AI assistant, and within about a minute they have a PDF quote in their inbox while the lead, the numbers and the PDF
+are already in the CRM.
+
+Built with **n8n**, a **Python / FastAPI** calculator and PDF generator, **Odoo CRM** and an **AI chatbot (Groq)**,
+all running locally in Docker. Portfolio project; the installer *Solar Solutions s.r.o.* is fictional.
+
+![Demo website of the fictional installer](docs/images/demo-website.png)
+
+**[Project overview (one page)](docs/OVERVIEW.md)**: what it does, how it is built and what it saves.
 
 ---
 
-## 1. Install
+## What happens
 
-| Tool | Why | Link |
-|---|---|---|
-| Docker Desktop | runs all four containers | https://www.docker.com/products/docker-desktop/ |
-| Python 3.12+ | only if you want to run the API outside Docker | https://www.python.org/downloads/ |
-| Git | version control | https://git-scm.com/downloads |
-| PyCharm Community | editing the Python modules | https://www.jetbrains.com/pycharm/ |
-
-On Windows, Docker Desktop needs WSL2 enabled. Reboot after install and
-confirm `docker version` responds before continuing.
-
-Free account needed: **Groq** — https://console.groq.com — the old API key is
-gone with the old machine, generate a new one.
-
-## 2. Configure
-
-```powershell
-cd "<...>\Sales Automation Kit for Solar Installers, project 1\PyCharmMiscProject\solar-automation"
-copy .env.example .env
+```mermaid
+flowchart LR
+    W[Demo website] --> F[n8n form]
+    W --> C[AI chatbot<br/>Groq, Slovak/English]
+    F --> Q
+    C -- after the customer confirms --> Q
+    subgraph Q[Quote Pipeline, n8n]
+        V[Validate input] --> O[Odoo opportunity]
+        O --> K[Calculate<br/>FastAPI]
+        K --> P[PDF quote]
+        P --> E[Email to customer]
+        E --> U[Odoo: numbers, PDF,<br/>stage Proposition]
+    end
+    K -. low confidence or error .-> R[Manual review:<br/>Odoo tag + alert email]
+    Q -. any failure .-> A[Error Alert email]
 ```
 
-Open `.env` and:
+1. **Entry:** the form or the chatbot collects eight answers: name, email, phone, monthly consumption, roof type,
+   orientation, region, battery.
+2. **Validate Input** checks every value with fixed rules (allowed options, real email, kWh range; for the chat also
+   name + surname and the customer's own confirmation). The language model cannot create a quote from invented data.
+3. **Odoo** gets a new opportunity.
+4. **Calculator** (`/calculate`) sizes the system from consumption, region yield and roof orientation, prices it and
+   computes savings, payback and a confidence score.
+5. **PDF** (`/generate-proposal`) is generated and **emailed** to the customer in Slovak.
+6. **Odoo** is updated: description with all numbers, expected revenue, PDF attached, stage *Proposition*.
+7. Low confidence (< 70 %) or a calculator error → no automatic offer; the lead is tagged *Manual review* and sales
+   gets an email. Any other failure → **Error Alert** email with a link to the failed run.
 
-1. Set a real `POSTGRES_PASSWORD`.
-2. Generate `N8N_ENCRYPTION_KEY`:
-   ```powershell
-   [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
-   ```
-   **Save this key in a password manager.** It is what makes every future
-   credential backup restorable. Losing it is how the old setup became
-   unrecoverable.
+## Stack
 
-## 3. Start the stack
+| Part | Tool | Where |
+|---|---|---|
+| Orchestration | n8n (self-hosted) | `Lead Capture.json`, `Quote Pipeline.json`, `AI Chatbot.json`, `Error Alert.json` |
+| Calculator + PDF | Python 3.12, FastAPI, ReportLab | `solar_calculator.py`, `proposal_generator.py`, `api_server.py` |
+| CRM | Odoo 19 Community + PostgreSQL 15 | `docker-compose.yml` |
+| Chatbot | n8n AI Agent + Groq `qwen/qwen3.8-27b` | `AI Chatbot.json` |
+| Demo website | plain HTML/CSS, served by the API at `/` | `demo/index.html` |
+| Tests | pytest + FastAPI TestClient | `tests/test_api.py` |
+
+## Run it
+
+**Needs:** Docker Desktop (WSL2 on Windows), a free [Groq](https://console.groq.com) API key, and a Gmail account
+with an [App Password](https://myaccount.google.com/apppasswords) for sending email.
 
 ```powershell
+copy .env.example .env      # set POSTGRES_PASSWORD and N8N_ENCRYPTION_KEY (instructions inside)
 docker compose up -d --build
 ```
 
-First boot pulls ~1.5 GB and takes 2–4 minutes. Then check:
-
-| Service | URL | First-run action |
+| Service | URL | First run |
 |---|---|---|
-| Odoo | http://localhost:8069 | create database — name it `solar`, note the master password |
-| n8n | http://localhost:5678 | create the owner account (email + password) |
-| Solar API | http://localhost:8000/health | should return `{"status":"ok",...}` |
-| API docs | http://localhost:8000/docs | interactive test of `/calculate` |
+| Demo website | http://localhost:8000 | works once the workflows are published |
+| Odoo | http://localhost:8069 | create database `solar`, install CRM, create the tag `Manual review`, create an API key |
+| n8n | http://localhost:5678 | create the owner account |
+| API docs | http://localhost:8000/docs | try `/calculate` |
 
-If you have a `.\backup\` folder from a previous machine, run
-`.\restore.ps1` instead of rebuilding section 4 by hand.
+Then in n8n:
 
-## 4. Rebuild the parts that were lost
+1. Import the workflows: `docker exec solar_n8n n8n import:workflow --separate --input=/backup/workflows.json`
+   (or `.\restore.ps1`).
+2. Create three credentials in the n8n UI: **Odoo** (URL `http://odoo:8069`, database `solar`, API key),
+   **SMTP** (`smtp.gmail.com`, port 465, SSL, Gmail App Password), **Groq** (API key). Select them in the nodes
+   that use them.
+3. **Publish** Error Alert, Quote Pipeline, Lead Capture and AI Chatbot. In Quote Pipeline → ⋯ → Settings, set
+   *Error Workflow* = Error Alert.
+4. Open http://localhost:8000 and click **Get a free quote**. Use your own email address.
 
-### 4.1 Odoo
+Inside Docker the containers reach each other by service name: the API is `http://solar_api:8000` and Odoo is
+`http://odoo:8069`. `localhost` only works from the browser.
 
-- Install the **CRM** app.
-- Set pipeline stages: `Nový lead → Kvalifikácia → Ponuka odoslaná → Zmluva → Realizácia`.
-- Settings → General Settings → Developer Tools → activate developer mode.
-- Create an API user for n8n and generate an API key
-  (Settings → Users → *user* → Account Security → New API Key).
-
-### 4.2 n8n credentials
-
-- **Groq** — paste the new API key.
-- **Odoo** — URL `http://odoo:8069`, database `solar`, the API user + key above.
-
-### 4.3 n8n workflows
-
-Two workflows to rebuild — full node-by-node spec in the Obsidian note.
-The one thing that trips people up:
-
-> Inside the Docker network, containers reach each other by **service name**,
-> not `localhost`. From an n8n HTTP Request node the API is
-> `http://solar_api:8000/generate-proposal` and Odoo is `http://odoo:8069`.
-> `http://localhost:8000` only works from your browser.
-
-## 5. Back up — every session
-
-```powershell
-.\backup.ps1
-git add backup/workflows.json && git commit -m "backup: n8n workflows"
-```
-
-`backup/workflows.json` is safe to commit. `backup/credentials.json` is
-encrypted but still don't commit it — it's in `.gitignore`.
-
-## 6. Push to GitHub
-
-```powershell
-git add .
-git commit -m "Update API field names and add orientation support; verify end-to-end workflow"
-git push origin main
-```
-
-## 7. Run the tests
+## Tests
 
 ```powershell
 pip install -r requirements-dev.txt
 pytest -v
 ```
 
-`tests/test_api.py` uses FastAPI's `TestClient`, so no server or Docker is
-needed: happy path, invalid type → 422, business-rule errors → 400, and a
-generated PDF that really starts with `%PDF`.
+14 tests, no Docker needed: the calculation, input errors (400/422), Slovak region and roof names, battery
+"áno", the PDF and the demo page.
+
+## Known limits
+
+- **Groq free tier:** 7,000 input tokens per minute for the whole account. A fast typist or two parallel chats
+  can hit it; the chat then shows "Error in workflow". A paid tier fixes it without changing the workflows.
+- Prices (1,100 € per kWp, 500 € per kWh of battery, 0.18 €/kWh) and regional yields are starting values at the top
+  of `solar_calculator.py`, not real installer data.
+- The form and the PDF are in English; the emails and the chat are in Slovak (the chat also in English).
+- The alert recipient and the company details are set directly in the workflows and the PDF generator.
 
 ## Files
 
 ```
-docker-compose.yml     four services: postgres, odoo, n8n, solar_api
-Dockerfile             builds the Python API image
-requirements.txt       fastapi, uvicorn, reportlab, pydantic
-.env.example           template - copy to .env
+demo/index.html        demo website (served at /)
+api_server.py          FastAPI: /calculate, /generate-proposal, /download, /health, /
 solar_calculator.py    sizing, pricing, ROI, confidence score
-proposal_generator.py  ReportLab PDF proposal
-api_server.py          FastAPI: /calculate, /generate-proposal, /health, /download
-backup.ps1             export n8n workflows + credentials + Odoo dump
-restore.ps1            import them back on a new machine
-backup/                the exports themselves
+proposal_generator.py  ReportLab PDF quote
+*.json                 n8n workflows (one file each)
+backup/workflows.json  all workflows in one export (used by restore.ps1)
+backup.ps1             export workflows, credentials and the Odoo database
+restore.ps1            import them on a new machine
+docker-compose.yml     postgres, odoo, n8n, solar_api
+tests/                 API tests
+docs/                  project overview and images
 ```
 
-## Verified
-
-**2026-09-17** — End-to-end workflow tested successfully:
-- Form submission accepted and parsed correctly
-- Odoo opportunity created with customer and system data
-- `/calculate` endpoint returned solar system specs for south-facing sloped-roof case
-- `/generate-proposal` generated PDF with actual customer name and email embedded
-- Orientation coefficients expanded: now supports south, southwest, southeast, west, east, north, northeast, northwest
-- All customer data (name, email, phone) flows correctly from form → n8n → API → PDF
-
-Recent fixes:
-- Fixed `api_server.py` ProposalRequest field names to match n8n output (customer_name, customer_email, customer_phone)
-- Added northeast (0.80) and northwest (0.80) to orientation_coefficient dict in `solar_calculator.py`
-- Both changes deployed and verified with Docker rebuild
+`backup/credentials.json` and `backup/odoo.sql` are never committed (`.gitignore`).
