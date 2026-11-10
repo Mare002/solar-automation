@@ -67,5 +67,4 @@ proposal_*.pdf
 .idea/
 
 # Local test output
-proposal.pdf
 test/*.pdf
