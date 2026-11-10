@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-09T21:59:12.579Z",
+  "updatedAt": "2026-11-10T12:58:58.717Z",
   "createdAt": "2026-11-09T21:33:43.430Z",
   "id": "DgpIfQUpwKw7mTMM",
   "name": "Quote Pipeline",
@@ -8,15 +8,6 @@
   "isArchived": false,
   "nodes": [
     {
-      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
-      "name": "Calculator",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "onError": "continueErrorOutput",
-      "position": [
-        448,
-        0
-      ],
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/calculate",
@@ -24,17 +15,18 @@
         "specifyBody": "json",
         "jsonBody": "={\n  \"name\": \"{{ $('Validate Input').item.json.name }}\",\n  \"email\": \"{{ $('Validate Input').item.json.email }}\",\n  \"phone\": \"{{ $('Validate Input').item.json.phone }}\",\n  \"monthly_consumption_kwh\": {{ $('Validate Input').item.json.monthly_kwh }},\n  \"roof_type\": \"{{ $('Validate Input').item.json.roof_type }}\",\n  \"orientation\": \"{{ $('Validate Input').item.json.orientation }}\",\n  \"wants_battery\": \"{{ $('Validate Input').item.json.battery }}\",\n  \"location\": \"{{ $('Validate Input').item.json.location }}\"\n}",
         "options": {}
-      }
-    },
-    {
-      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
-      "name": "Generate proposal",
+      },
+      "id": "b2c28cc6-05f6-4daa-82da-b0fba531ea65",
+      "name": "Calculator",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        896,
+        448,
         0
       ],
+      "onError": "continueErrorOutput"
+    },
+    {
       "parameters": {
         "method": "POST",
         "url": "http://solar_api:8000/generate-proposal",
@@ -42,17 +34,17 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
-      }
+      },
+      "id": "477da0c8-5a01-4400-9786-9f5fad039a8c",
+      "name": "Generate proposal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ]
     },
     {
-      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
-      "name": "Odoo Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "create",
@@ -111,6 +103,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "1e4497f5-943d-4de6-beeb-42f48934a000",
+      "name": "Odoo Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -119,14 +119,6 @@
       }
     },
     {
-      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
-      "name": "HTTP Request",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
-      "position": [
-        1120,
-        0
-      ],
       "parameters": {
         "url": "=http://solar_api:8000/download/{{ $json.proposal_pdf.filename }}",
         "options": {
@@ -136,9 +128,24 @@
             }
           }
         }
-      }
+      },
+      "id": "6215d899-6eee-490b-96dc-02dde7d81b39",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "pdf_base64",
+        "options": {
+          "keepSource": "both"
+        }
+      },
       "id": "d2e0b1f3-0001-4c9a-8b00-000000000001",
       "name": "PDF to Base64",
       "type": "n8n-nodes-base.extractFromFile",
@@ -146,24 +153,9 @@
       "position": [
         0,
         240
-      ],
-      "parameters": {
-        "operation": "binaryToPropery",
-        "destinationKey": "pdf_base64",
-        "options": {
-          "keepSource": "both"
-        }
-      }
+      ]
     },
     {
-      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
-      "name": "Update Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        448,
-        240
-      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -216,6 +208,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "d2e0b1f3-0002-4c9a-8b00-000000000002",
+      "name": "Update Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -224,14 +224,6 @@
       }
     },
     {
-      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
-      "name": "Attach PDF to Opportunity",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        0,
-        512
-      ],
       "parameters": {
         "resource": "custom",
         "operation": "create",
@@ -317,6 +309,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "d2e0b1f3-0003-4c9a-8b00-000000000003",
+      "name": "Attach PDF to Opportunity",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        0,
+        512
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -325,15 +325,6 @@
       }
     },
     {
-      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
-      "name": "Send an Email to Customers Mail",
-      "webhookId": "e1cebe56-32fe-4fc6-a9aa-45930f4358c0",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        224,
-        240
-      ],
       "parameters": {
         "fromEmail": "Solar Solutions <adminSolar@gmail.com>",
         "toEmail": "={{ $('Generate proposal').item.json.customer.email }}",
@@ -344,6 +335,15 @@
           "fileAttachments": "data"
         }
       },
+      "id": "29b87c72-65d2-49ab-82b8-ac775f5dedc9",
+      "name": "Send an Email to Customers Mail",
+      "webhookId": "e1cebe56-32fe-4fc6-a9aa-45930f4358c0",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        240
+      ],
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -352,14 +352,6 @@
       }
     },
     {
-      "id": "f6906bc1-c0f1-4b2e-a340-64dd70c213ef",
-      "name": "Confidence OK?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        672,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -382,17 +374,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "f6906bc1-c0f1-4b2e-a340-64dd70c213ef",
+      "name": "Confidence OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ]
     },
     {
-      "id": "7130385b-fe83-432d-bcc5-8457d266f6bb",
-      "name": "Reason: Low confidence",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        896,
-        480
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -405,17 +397,17 @@
           ]
         },
         "options": {}
-      }
-    },
-    {
-      "id": "2cf0ec4b-4971-4715-bc79-71fd7dca588c",
-      "name": "Reason: Calculator error",
+      },
+      "id": "7130385b-fe83-432d-bcc5-8457d266f6bb",
+      "name": "Reason: Low confidence",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         896,
-        672
-      ],
+        480
+      ]
+    },
+    {
       "parameters": {
         "assignments": {
           "assignments": [
@@ -428,17 +420,17 @@
           ]
         },
         "options": {}
-      }
-    },
-    {
-      "id": "60329a0d-a0ab-4ecb-8a68-2898bf8e2b3e",
-      "name": "Prepare Manual Review",
+      },
+      "id": "2cf0ec4b-4971-4715-bc79-71fd7dca588c",
+      "name": "Reason: Calculator error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        1120,
-        560
-      ],
+        896,
+        672
+      ]
+    },
+    {
       "parameters": {
         "assignments": {
           "assignments": [
@@ -463,18 +455,17 @@
           ]
         },
         "options": {}
-      }
+      },
+      "id": "60329a0d-a0ab-4ecb-8a68-2898bf8e2b3e",
+      "name": "Prepare Manual Review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        560
+      ]
     },
     {
-      "id": "4796f6a0-9a11-4fab-975e-9ecbfff3238d",
-      "name": "Find Manual Review Tag",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "alwaysOutputData": true,
-      "position": [
-        1344,
-        560
-      ],
       "parameters": {
         "resource": "custom",
         "customResource": {
@@ -495,6 +486,15 @@
           ]
         }
       },
+      "id": "4796f6a0-9a11-4fab-975e-9ecbfff3238d",
+      "name": "Find Manual Review Tag",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "alwaysOutputData": true,
+      "position": [
+        1344,
+        560
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -503,14 +503,6 @@
       }
     },
     {
-      "id": "94b13c8c-9604-4741-a685-ce17a32253be",
-      "name": "Mark for Manual Review",
-      "type": "n8n-nodes-base.odoo",
-      "typeVersion": 2,
-      "position": [
-        1568,
-        560
-      ],
       "parameters": {
         "resource": "opportunity",
         "operation": "update",
@@ -542,6 +534,14 @@
           "convertFieldsToString": false
         }
       },
+      "id": "94b13c8c-9604-4741-a685-ce17a32253be",
+      "name": "Mark for Manual Review",
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        560
+      ],
       "credentials": {
         "odooApiKeyApi": {
           "id": "BTkYqo7dYlSJQoR0",
@@ -550,15 +550,6 @@
       }
     },
     {
-      "id": "8de6e9cd-1da7-4073-b223-286441d424ed",
-      "name": "Alert Sales: Manual Review",
-      "webhookId": "4e45c186-4b11-4ae9-a1d1-abd3414b858a",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        1792,
-        560
-      ],
       "parameters": {
         "fromEmail": "Solar Automation <adminSolar@gmail.com>",
         "toEmail": "macek4marko@gmail.com",
@@ -568,6 +559,15 @@
           "appendAttribution": false
         }
       },
+      "id": "8de6e9cd-1da7-4073-b223-286441d424ed",
+      "name": "Alert Sales: Manual Review",
+      "webhookId": "4e45c186-4b11-4ae9-a1d1-abd3414b858a",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1792,
+        560
+      ],
       "credentials": {
         "smtp": {
           "id": "kiYBA90UbTsrhyZM",
@@ -576,6 +576,43 @@
       }
     },
     {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "name"
+            },
+            {
+              "name": "email"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "monthly_kwh",
+              "type": "number"
+            },
+            {
+              "name": "roof_type"
+            },
+            {
+              "name": "orientation"
+            },
+            {
+              "name": "battery"
+            },
+            {
+              "name": "location"
+            },
+            {
+              "name": "source"
+            },
+            {
+              "name": "confirmation"
+            }
+          ]
+        }
+      },
       "id": "a1b2c3d4-0000-4000-8000-00000000a001",
       "name": "Lead Input",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
@@ -583,68 +620,10 @@
       "position": [
         -112,
         0
-      ],
-      "parameters": {
-        "inputSource": "workflowInputs",
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "name",
-              "type": "string"
-            },
-            {
-              "name": "email",
-              "type": "string"
-            },
-            {
-              "name": "phone",
-              "type": "string"
-            },
-            {
-              "name": "monthly_kwh",
-              "type": "number"
-            },
-            {
-              "name": "roof_type",
-              "type": "string"
-            },
-            {
-              "name": "orientation",
-              "type": "string"
-            },
-            {
-              "name": "battery",
-              "type": "string"
-            },
-            {
-              "name": "location",
-              "type": "string"
-            },
-            {
-              "name": "source",
-              "type": "string"
-            },
-            {
-              "name": "confirmation",
-              "type": "string"
-            }
-          ]
-        }
-      }
+      ]
     },
     {
-      "id": "a1b2c3d4-0000-4000-8000-00000000b000",
-      "name": "Result: Quote sent",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        896,
-        240
-      ],
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
-        "options": {},
         "assignments": {
           "assignments": [
             {
@@ -708,22 +687,20 @@
               "type": "number"
             }
           ]
-        }
-      }
-    },
-    {
-      "id": "a1b2c3d4-0000-4000-8000-00000000c000",
-      "name": "Result: Manual review",
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-4000-8000-00000000b000",
+      "name": "Result: Quote sent",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        2016,
-        560
-      ],
+        896,
+        240
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
-        "options": {},
         "assignments": {
           "assignments": [
             {
@@ -745,33 +722,34 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-4000-8000-00000000c000",
+      "name": "Result: Manual review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2016,
+        560
+      ]
     },
     {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Hard gate before anything is created or sent. The AI chatbot can call this\n// workflow with invented values, so every field is checked here, in code, not by the LLM.\nconst ROOF = ['Sloped (pitched)', 'Flat', 'Metal', 'Tile', 'Concrete', 'Other'];\nconst ORIENT = ['South', 'Southeast', 'Southwest', 'East', 'West', 'Northeast', 'Northwest', 'North'];\nconst REGION = ['Bratislava', 'Trnava', 'Nitra', 'Trenčín', 'Žilina', 'Banská Bystrica', 'Prešov', 'Košice', 'Other'];\nconst pick = (list, v) => list.find(x => x.toLowerCase() === String(v ?? '').trim().toLowerCase());\nconst plain = s => String(s ?? '').trim().toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');\n\nconst i = $json;\nconst errors = [];\nconst source = i.source || 'form';\n\nconst name = String(i.name ?? '').trim();\nif (!name) errors.push('name: missing');\nelse if (source === 'chat' && name.split(/\\s+/).length < 2) errors.push('name: ask the customer for their first name and surname');\n\nconst email = String(i.email ?? '').trim();\nif (!/^[^\\s@]+@[^\\s@]+\\.[a-z]{2,}$/i.test(email)) errors.push('email: not a valid address, ask the customer again');\nelse if (/@(example\\.(com|org|net)|test\\.[a-z]+|[^@]*\\.(test|example|invalid|localhost))$/i.test(email) || /^(test|example|placeholder|user|name)@/i.test(email))\n  errors.push('email: looks like a placeholder, ask the customer for their real email');\n\nconst kwh = Number(i.monthly_kwh);\nif (!(kwh >= 50 && kwh <= 5000)) errors.push('monthly_kwh: must be a number between 50 and 5000');\n\nconst roof = pick(ROOF, i.roof_type);\nif (!roof) errors.push('roof_type: must be one of ' + ROOF.join(', '));\nconst orientation = pick(ORIENT, i.orientation);\nif (!orientation) errors.push('orientation: must be one of ' + ORIENT.join(', '));\nconst location = pick(REGION, i.location);\nif (!location) errors.push('location: must be one of ' + REGION.join(', '));\n\nconst b = plain(i.battery);\nconst battery = ['yes', 'ano', 'a', 'true', '1'].includes(b) ? 'Yes' : ['no', 'nie', 'n', 'false', '0'].includes(b) ? 'No' : null;\nif (!battery) errors.push('battery: must be Yes or No');\n\n// Chat only: the customer's last message (passed by n8n, not by the AI) must confirm the summary.\nif (source === 'chat') {\n  const c = plain(i.confirmation);\n  const ok = /^(ano|a|jo|yes|y|ok|okay|sure|spravne|suhlas|suhlasim|potvrdzujem|presne|ano[\\s,!.].*|yes[\\s,!.].*|je to spravne.*|vsetko sedi.*|sedi.*)$/.test(c);\n  if (!ok) errors.push('not_confirmed: show the summary of all answers and wait until the customer confirms it, then call create_quote');\n}\n\nreturn {\n  json: {\n    name, email, phone: String(i.phone ?? '').trim(), monthly_kwh: kwh,\n    roof_type: roof ?? i.roof_type, orientation: orientation ?? i.orientation,\n    location: location ?? i.location, battery: battery ?? i.battery, source,\n    valid: errors.length === 0, errors,\n  },\n};"
+      },
       "id": "a1b2c3d4-0000-4000-8000-00000000e001",
       "name": "Validate Input",
-      "notes": "Why Code: one step checks 8 fields against fixed lists, an email regex, placeholder domains and the chat confirmation, and returns every error at once for the chatbot.",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         112,
         -240
       ],
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// Hard gate before anything is created or sent. The AI chatbot can call this\n// workflow with invented values, so every field is checked here, in code, not by the LLM.\nconst ROOF = ['Sloped (pitched)', 'Flat', 'Metal', 'Tile', 'Concrete', 'Other'];\nconst ORIENT = ['South', 'Southeast', 'Southwest', 'East', 'West', 'Northeast', 'Northwest', 'North'];\nconst REGION = ['Bratislava', 'Trnava', 'Nitra', 'Trenčín', 'Žilina', 'Banská Bystrica', 'Prešov', 'Košice', 'Other'];\nconst pick = (list, v) => list.find(x => x.toLowerCase() === String(v ?? '').trim().toLowerCase());\nconst plain = s => String(s ?? '').trim().toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '');\n\nconst i = $json;\nconst errors = [];\nconst source = i.source || 'form';\n\nconst name = String(i.name ?? '').trim();\nif (!name) errors.push('name: missing');\nelse if (source === 'chat' && name.split(/\\s+/).length < 2) errors.push('name: ask the customer for their first name and surname');\n\nconst email = String(i.email ?? '').trim();\nif (!/^[^\\s@]+@[^\\s@]+\\.[a-z]{2,}$/i.test(email)) errors.push('email: not a valid address, ask the customer again');\nelse if (/@(example\\.(com|org|net)|test\\.[a-z]+|[^@]*\\.(test|example|invalid|localhost))$/i.test(email) || /^(test|example|placeholder|user|name)@/i.test(email))\n  errors.push('email: looks like a placeholder, ask the customer for their real email');\n\nconst kwh = Number(i.monthly_kwh);\nif (!(kwh >= 50 && kwh <= 5000)) errors.push('monthly_kwh: must be a number between 50 and 5000');\n\nconst roof = pick(ROOF, i.roof_type);\nif (!roof) errors.push('roof_type: must be one of ' + ROOF.join(', '));\nconst orientation = pick(ORIENT, i.orientation);\nif (!orientation) errors.push('orientation: must be one of ' + ORIENT.join(', '));\nconst location = pick(REGION, i.location);\nif (!location) errors.push('location: must be one of ' + REGION.join(', '));\n\nconst b = plain(i.battery);\nconst battery = ['yes', 'ano', 'a', 'true', '1'].includes(b) ? 'Yes' : ['no', 'nie', 'n', 'false', '0'].includes(b) ? 'No' : null;\nif (!battery) errors.push('battery: must be Yes or No');\n\n// Chat only: the customer's last message (passed by n8n, not by the AI) must confirm the summary.\nif (source === 'chat') {\n  const c = plain(i.confirmation);\n  const ok = /^(ano|a|jo|yes|y|ok|okay|sure|spravne|suhlas|suhlasim|potvrdzujem|presne|ano[\\s,!.].*|yes[\\s,!.].*|je to spravne.*|vsetko sedi.*|sedi.*)$/.test(c);\n  if (!ok) errors.push('not_confirmed: show the summary of all answers and wait until the customer confirms it, then call create_quote');\n}\n\nreturn {\n  json: {\n    name, email, phone: String(i.phone ?? '').trim(), monthly_kwh: kwh,\n    roof_type: roof ?? i.roof_type, orientation: orientation ?? i.orientation,\n    location: location ?? i.location, battery: battery ?? i.battery, source,\n    valid: errors.length === 0, errors,\n  },\n};"
-      }
+      "notes": "Why Code: one step checks 8 fields against fixed lists, an email regex, placeholder domains and the chat confirmation, and returns every error at once for the chatbot."
     },
     {
-      "id": "a1b2c3d4-0000-4000-8000-00000000e002",
-      "name": "Input valid?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        224,
-        -240
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -795,21 +773,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "a1b2c3d4-0000-4000-8000-00000000e002",
+      "name": "Input valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -240
+      ]
     },
     {
-      "id": "a1b2c3d4-0000-4000-8000-00000000e003",
-      "name": "Result: Invalid input",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        448,
-        -240
-      ],
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
-        "options": {},
         "assignments": {
           "assignments": [
             {
@@ -831,8 +806,17 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0000-4000-8000-00000000e003",
+      "name": "Result: Invalid input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        448,
+        -240
+      ]
     }
   ],
   "connections": {
@@ -1058,15 +1042,19 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "E3ohbEWZ117Y16cE",
+    "availableInMCP": false
   },
   "staticData": null,
   "meta": null,
   "nodeGroups": [],
-  "pinData": null,
-  "versionId": "2f31b200-70db-422b-b2e5-c20bffcb1475",
-  "activeVersionId": "2f31b200-70db-422b-b2e5-c20bffcb1475",
-  "versionCounter": 3,
+  "pinData": {},
+  "versionId": "9edfe6f8-5f8c-418b-9d27-97f004149eb8",
+  "activeVersionId": "9edfe6f8-5f8c-418b-9d27-97f004149eb8",
+  "versionCounter": 6,
   "triggerCount": 0,
   "sourceWorkflowId": null,
   "tags": [],
@@ -1091,7 +1079,7 @@
     }
   ],
   "versionMetadata": {
-    "name": null,
-    "description": null
+    "name": "Version 9edfe6f8",
+    "description": ""
   }
 }
