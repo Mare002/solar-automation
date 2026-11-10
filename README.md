@@ -123,3 +123,26 @@ docs/                  project overview and images
 ```
 
 `backup/credentials.json` and `backup/odoo.sql` are never committed (`.gitignore`).
+
+## License and disclaimer
+
+**License:** the code in this repository is released under the [MIT License](LICENSE). You may use, change and
+share it, as long as the copyright notice stays in the copies. It comes without any warranty.
+
+**Fictional company.** *Solar Solutions s.r.o.*, its address, phone numbers, email addresses, company facts and the
+customers in the sample files are made up for this demo. Any resemblance to a real company or person is
+unintentional.
+
+**No professional advice.** Prices, solar yields, savings and payback are placeholder estimates for demonstration.
+They are not an offer, not financial or engineering advice, and must not be used to size or sell a real system
+without a qualified installer checking the site and the numbers.
+
+**Third-party software and trademarks.** This repository contains only the project's own code and workflow exports.
+n8n, Odoo, PostgreSQL, Groq and the Python libraries are not included; they are downloaded as Docker images or
+packages and stay under their own licenses (for example n8n: Sustainable Use License, Odoo Community: LGPL-3.0,
+FastAPI: MIT, ReportLab: BSD). Check those licenses before any commercial use, especially n8n's. All product names
+and logos are trademarks of their owners; this project is not affiliated with or endorsed by them.
+
+**Personal data.** The demo emails a quote to the address entered in the form or chat and stores the entered details
+in the local Odoo database. Use your own data when you try it, and do not enter other people's details without
+their consent.
