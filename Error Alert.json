@@ -1,0 +1,98 @@
+{
+  "updatedAt": "2026-11-10T12:46:22.272Z",
+  "createdAt": "2026-11-10T12:46:22.272Z",
+  "id": "E3ohbEWZ117Y16cE",
+  "name": "Error Alert",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "e0000000-0000-4000-8000-000000000001",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000002",
+      "name": "Alert Sales: Workflow Failed",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "fromEmail": "Solar Automation <adminSolar@gmail.com>",
+        "toEmail": "macek4marko@gmail.com",
+        "subject": "=Chyba v automatizácii: {{ $json.workflow.name }} – {{ $json.execution.lastNodeExecuted || 'neznámy uzol' }}",
+        "html": "=<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;color:#1f2937;line-height:1.5\"><h2 style=\"color:#b91c1c;margin:0 0 12px\">Automatizácia zlyhala</h2><p><b>Workflow:</b> {{ $json.workflow.name }}<br><b>Uzol, ktorý zlyhal:</b> {{ $json.execution.lastNodeExecuted || \"neznámy\" }}<br><b>Chyba:</b> {{ $json.execution.error.message || $json.trigger?.error?.message || \"bez popisu\" }}<br><b>Čas:</b> {{ $now.setZone(\"Europe/Bratislava\").toFormat(\"dd.MM.yyyy HH:mm\") }}</p><p>Zákazník pravdepodobne <b>nedostal</b> ponuku alebo odpoveď. Ak chyba nastala po uzle „Odoo Opportunity“, lead už je v Odoo (fáza New) bez ponuky. Údaje zákazníka sú v detaile behu.</p><p><a href=\"http://localhost:5678/workflow/{{ $json.workflow.id }}/executions/{{ $json.execution.id }}\">Otvoriť beh v n8n (execution {{ $json.execution.id }})</a></p></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "smtp": {
+          "id": "kiYBA90UbTsrhyZM",
+          "name": "SMTP account"
+        }
+      },
+      "webhookId": "e84e1f7d-5749-48b1-85a4-9e04342dc508"
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Alert Sales: Workflow Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "e9aada9f-7b94-493a-861c-28f5076df906",
+  "activeVersionId": "e9aada9f-7b94-493a-861c-28f5076df906",
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-10T12:46:22.283Z",
+      "createdAt": "2026-11-10T12:46:22.283Z",
+      "role": "workflow:owner",
+      "workflowId": "E3ohbEWZ117Y16cE",
+      "projectId": "o01heyKkvxmOYq1j",
+      "project": {
+        "updatedAt": "2026-09-15T11:11:49.113Z",
+        "createdAt": "2026-09-15T10:58:40.824Z",
+        "id": "o01heyKkvxmOYq1j",
+        "name": "Marko macek4marko@gmail.com <macek4marko@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "56319f05-99a6-438d-8f28-0a60909b51f9"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version e9aada9f",
+    "description": ""
+  }
+}

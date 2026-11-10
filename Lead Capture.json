@@ -4,7 +4,7 @@
   "id": "PhFRXhA873DwtvKb",
   "name": "Lead Capture",
   "description": null,
-  "active": false,
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
@@ -302,9 +302,9 @@
   "nodeGroups": [],
   "pinData": {},
   "versionId": "6e661392-9543-4a59-b139-1e8203e53595",
-  "activeVersionId": null,
+  "activeVersionId": "6e661392-9543-4a59-b139-1e8203e53595",
   "versionCounter": 206,
-  "triggerCount": 0,
+  "triggerCount": 1,
   "sourceWorkflowId": null,
   "tags": [],
   "shared": [
@@ -328,7 +328,7 @@
     }
   ],
   "versionMetadata": {
-    "name": null,
-    "description": null
+    "name": "Version 6e661392",
+    "description": ""
   }
 }
