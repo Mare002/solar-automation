@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY solar_calculator.py .
 COPY proposal_generator.py .
 COPY api_server.py .
+COPY demo/ demo/
 
 # Create directory for generated PDFs
 RUN mkdir -p /app/generated_pdfs
