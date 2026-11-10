@@ -65,3 +65,6 @@ proposal_*.pdf
 
 ### JetBrains
 .idea/
+
+# Local test output
+test/*.pdf
